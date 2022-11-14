@@ -39,6 +39,16 @@ sp = spotipy.Spotify(
 
 
 # %%
+def open_wheel():
+    with open(path.join("data", "camelot.json")) as json_file:
+        camelot_json = json.load(json_file)
+        cam_wheel = pd.DataFrame.from_dict(camelot_json)
+    return cam_wheel
+
+wheel = open_wheel() # todo: delete this
+# print(wheel)
+print(type(wheel))
+
 def key_to_camelot(df):
     df["key"] = (
         df["key"]
@@ -91,9 +101,8 @@ def key_to_camelot(df):
         "D-flat minor": "12A",
         "E major": "12B",
     }
-
     # Convert diatonic key signatures to Camelot wheel equivalents.
-    df["camelot"] = df["key_signature"].map(key_to_wheel)
+    df["camelot"] = df["key_signature"].map(lambda x: [wheel.loc['key'] == x][0].index[0])
     df = df.drop(columns=["key", "mode"])
 
 
@@ -184,15 +193,6 @@ def remove_podcasts(df):
 
 def get_podcasts(df):
     return df[df['id'] == False]#.fillna(value=nan) #Todo: keep nan or no
-
-
-
-# %%
-def open_wheel():
-    with open(path.join("data", "camelot.json")) as json_file:
-        camelot_json = json.load(json_file)
-        wheel = camelot_json
-        return wheel
 
 
 
@@ -322,7 +322,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 1000
+    testlength = 100
 
     all_streams = get_history()
     streams_df = remove_podcasts(all_streams)
@@ -336,7 +336,8 @@ def main():
     pickl(no_skip_df, name="no_skip_df.p")
     pickl(playlist_af_df, name="playlist_af_df.p")
     pickl(podcasts_df, name="podcasts_df.p")
-    # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
+    # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
+    return streams_af_df
 
 
 # %%
@@ -346,6 +347,7 @@ def main():
 
 # %%
 # # %prun -r main()
+streams_af_df = main()
+streams_af_df
 
 # %%
-# # %store -r streams_af_df
