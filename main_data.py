@@ -266,7 +266,7 @@ def add_features(df, length=None, playlist=None):
                 ]
                 merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            merge_cols["tempo"] = round(merge_cols["tempo"])
+            merge_cols["tempo"] = round(merge_cols["tempo"]).astype(int) # Todo: delete this if it breaks main
             return merge_cols
         res = sp.audio_features(
             df_query["id"].iloc[offset_min:offset_max],
@@ -278,7 +278,53 @@ def add_features(df, length=None, playlist=None):
             af_res_list.append(res)
         offset_min += 50
         offset_max += 50
+# %%
+# # This version works with uri
+# #should also have function to get uri from song title + artist
+# #todo: proper type hinting and default values
+# # separate functions i suppose, maybe with decorators
+# # https://stackoverflow.com/questions/62153371/best-way-to-create-python-function-with-multiple-options
 
+
+def get_friendly(
+    df,
+    tempo_range=10,
+    uri=None,
+    index=None,
+    shuffle=None,
+    playlist=False,
+    shift=["all"],
+):
+    wheel = open_wheel()
+    df = df.drop_duplicates(subset="id").reset_index()
+    if uri:
+        song_selected = df.loc[df["id"] == uri].iloc[0]
+    elif index or index == 0:
+        song_selected = df.loc[index]
+    elif shuffle:
+        song_selected = df.iloc[randint(0, len(df) - 1)]
+    else:
+        print(
+            "Error: no song selected. Specify shuffle=True to operate on random song."
+        )
+    # Designate desired tempo range
+    selected_tempo = song_selected["tempo"]
+    acceptable_tempos = range(
+        (selected_tempo - tempo_range), (selected_tempo + tempo_range), 1
+    )
+
+    # Select harmonically compatible key signatures in camelot.json
+    friendly_keys = []
+    for i in range(len(shift)):
+        key = wheel[song_selected["camelot"]][shift[i]]
+        friendly_keys.append(key)
+        print(key)
+        if type(key) == list:
+            friendly_keys.extend(key)
+    # Show tracks with harmonically compatible key signatures within a given tempo range. Accounts for Spotify's tendency to double or halve numeric tempos.
+    return df.query(
+        "camelot in @friendly_keys & (tempo in @acceptable_tempos | tempo * 2 in @acceptable_tempos | tempo / 2 in @acceptable_tempos)"
+    )
 
 # %%
 def pickl(df, name):
