@@ -82,7 +82,7 @@ def get_history():
                 "skipped",
             ]
         )
-        #.fillna(value=False) # Todo: keep nan or no
+        .fillna(value="None") # Todo: keep nan or no
         .rename(
             columns={
                 "master_metadata_track_name": "track",
@@ -110,15 +110,14 @@ def get_history():
 
 # %%
 def get_podcasts(df):
-    df = df[df['id'] == False]#.fillna(value=nan) #Todo: keep nan or no
-    return df
+    return df[df['id'] == "None"]
 
 
 # %%
 def remove_podcasts(df):
     # Drop podcast episodes. Reorder columns.
     df = (
-        df#.fillna(value=nan) #Todo: keep nan or no
+        df.fillna(value=nan) #Todo: keep nan or no
         .loc[df["episode"].isna()]
         .drop(
             columns=[
@@ -318,7 +317,10 @@ def main():
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
     return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
+    # return podcasts_df
 
+# podcasts_df = main()
+# podcasts_df
 
 # %%
 # if __name__ == "__main__":
