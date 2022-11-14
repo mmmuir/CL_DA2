@@ -42,7 +42,7 @@ sp = spotipy.Spotify(
 def open_wheel():
     with open(path.join("data", "camelot.json")) as json_file:
         camelot_json = json.load(json_file)
-        cam_wheel = pd.DataFrame.from_dict(camelot_json)
+        cam_wheel = pd.DataFrame.from_dict(camelot_json).iloc[0]
     return cam_wheel
 
 wheel = open_wheel() # todo: delete this
@@ -102,10 +102,12 @@ def key_to_camelot(df):
         "E major": "12B",
     }
     # Convert diatonic key signatures to Camelot wheel equivalents.
-    df["camelot"] = df["key_signature"].map(lambda x: [wheel.loc['key'] == x][0].index[0])
+    df["camelot"] = df["key_signature"].map(lambda x: wheel.loc[wheel == x].index[0]
+)
     df = df.drop(columns=["key", "mode"])
 
 
+# %%
 
 # %%
 def get_history():
