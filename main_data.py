@@ -21,10 +21,8 @@ from glob import glob
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pandas as pd
-import numpy as np
 from numpy import nan, where
 from ratelimit import limits
-
 
 
 # %%
@@ -82,7 +80,6 @@ def get_history():
                 "skipped",
             ]
         )
-        # .fillna(value="N/A") # Todo: keep nan or no
         .rename(
             columns={
                 "master_metadata_track_name": "track",
@@ -107,17 +104,20 @@ def get_history():
     return df
 
 
-
 # %%
 def get_podcasts(df):
-    return df[df['id'].isnull()].reset_index()
+    return (
+        df[df["id"].isnull()]
+        .reset_index(drop=True)
+        .drop(columns=["track", "artist", "album", "id", "shuffle"])
+    )
 
 
 # %%
 def remove_podcasts(df):
     # Drop podcast episodes. Reorder columns.
     df = (
-        df.fillna(value=nan) #Todo: keep nan or no
+        df.fillna(value=nan)  # Todo: keep nan or no
         .loc[df["episode"].isna()]
         .drop(
             columns=[
@@ -158,7 +158,6 @@ def get_playlist(uri):
     return df
 
 
-
 # %%
 def open_wheel():
     with open(path.join("data", "camelot.json")) as json_file:
@@ -197,8 +196,9 @@ def key_to_camelot(df):
     wheel_df = open_wheel().iloc[0]
 
     # Convert diatonic key signatures to Camelot wheel equivalents.
-    df["camelot"] = df["key_signature"].map(lambda x: wheel_df.loc[wheel_df == x].index[0]
-)
+    df["camelot"] = df["key_signature"].map(
+        lambda x: wheel_df.loc[wheel_df == x].index[0]
+    )
     df = df.drop(columns=["key", "mode"])
 
 
@@ -280,11 +280,9 @@ def add_features(df, length=None, playlist=None):
         offset_max += 50
 
 
-
 # %%
 def pickl(df, name):
     return df.to_pickle(path.join("data", name))
-
 
 
 # %%
@@ -293,68 +291,42 @@ def unpickl(*df):
         yield pd.read_pickle(path.join("data", name))
 
 
-
 # %%
 def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 100
+    testlength = None
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
     streams_df = remove_podcasts(all_streams_df)
     streams_af_df = add_features(streams_df, length=testlength)
     playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
+    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.75").reset_index(
+        drop=True
+    )
     wheel_df = open_wheel()
 
     pickl(streams_df, name="streams_df.p")
     pickl(streams_af_df, name="streams_af_df.p")
     pickl(no_skip_df, name="no_skip_df.p")
     pickl(playlist_af_df, name="playlist_af_df.p")
-    # pickl(podcasts_df, name="podcasts_df.p")
+    pickl(podcasts_df, name="podcasts_df.p")
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
-    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
-    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df
-
-    # return podcasts_df
-
-# podcasts_df = main()
-# podcasts_df
-# main()
-
-# %%
-# if __name__ == "__main__":
-#     main()
 
 
 # %%
-# Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in 
-# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
-# %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
+if __name__ == "__main__":
+    main()
+
+# %%
+# Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
+# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 # # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
 
 # %%
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
-
-
-# %%
-streams_df
-
-# %%
-type(all_streams_df.loc[1][3])
-
-# %%
-podcasts_df
-
-# %%
-wheel_df
-
-# %%
-streams_af_df
-
-# %%
-playlist_af_df
