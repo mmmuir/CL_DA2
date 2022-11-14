@@ -96,6 +96,8 @@ def key_to_camelot(df):
 
 
 # %%
+deletethis = 0
+
 def get_history():
     """_summary_
         Convert extended streaming history to DataFrame.
@@ -105,14 +107,14 @@ def get_history():
         
     """
     json_concat = []
-    history = glob(path.join("data", "endsong_*.json"))
+    history = glob(path.join("backups", "endsong_*_test.json"))
     for i in range(len(history)):
         if len(history) == 1:
-            with open(path.join("data", "endsong.json"), encoding="utf-8") as json_file:
+            with open(path.join("backups", "endsong_0.json"), encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif history:
-            with open(path.join("data", f"endsong_{i}.json"), encoding="utf-8") as json_file:
+            with open(path.join("backups", f"endsong_{i}_test.json"), encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif not history:
@@ -122,34 +124,35 @@ def get_history():
             break
     df = [j for i in json_concat for j in i]
     df = pd.DataFrame(df)
-    df.rename(columns={"spotify_track_uri": "id"}, inplace=True)
-    df["ts"] = pd.to_datetime(df["ts"])
-    df["date"] = df.ts.dt.strftime("%m/%d/%Y")
-    df["time"] = df.ts.dt.strftime("%H:%M:%S")
-    df["month"] = df.ts.dt.strftime("%m")
-    df["year"] = df.ts.dt.strftime("%Y")
+    
+    # df.rename(columns={"spotify_track_uri": "id"}, inplace=True)
+    # df["ts"] = pd.to_datetime(df["ts"])
+    # df["date"] = df.ts.dt.strftime("%m/%d/%Y")
+    # df["time"] = df.ts.dt.strftime("%H:%M:%S")
+    # df["month"] = df.ts.dt.strftime("%m")
+    # df["year"] = df.ts.dt.strftime("%Y")
 
-    # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
-    df = (
-        df.fillna(value=nan)
-        .loc[df["episode_name"].isna()]
-        .drop(
-            columns=[
-                "spotify_episode_uri",
-                "episode_name",
-                "episode_show_name",
-                "username",
-                "ip_addr_decrypted",
-                "user_agent_decrypted",
-                "platform",
-                "conn_country",
-                "offline",
-                "offline_timestamp",
-                "incognito_mode",
-                "skipped",
-            ]
-        )
-    )
+    # # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
+    # df = (
+    #     df.fillna(value=nan)
+    #     .loc[df["episode_name"].isna()]
+    #     .drop(
+    #         columns=[
+    #             "spotify_episode_uri",
+    #             "episode_name",
+    #             "episode_show_name",
+    #             "username",
+    #             "ip_addr_decrypted",
+    #             "user_agent_decrypted",
+    #             "platform",
+    #             "conn_country",
+    #             "offline",
+    #             "offline_timestamp",
+    #             "incognito_mode",
+    #             "skipped",
+    #         ]
+    #     )
+    # )
     return df
 
 
@@ -304,3 +307,5 @@ def main():
 # %%
 streams_df = main()
 streams_df
+
+# %%
