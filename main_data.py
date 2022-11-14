@@ -39,43 +39,6 @@ sp = spotipy.Spotify(
 
 
 # %%
-def key_to_camelot(df):
-    df["key"] = (
-        df["key"]
-        .astype(str)
-        .replace(
-            {
-                "-1": "no key detected",
-                "0": "C",
-                "1": "D-flat",
-                "2": "D",
-                "3": "E-flat",
-                "4": "E",
-                "5": "F",
-                "6": "F-sharp",
-                "7": "G",
-                "8": "A-flat",
-                "9": "A",
-                "10": "B-flat",
-                "11": "B",
-            }
-        )
-    )
-
-    df["mode"] = where(df["mode"] == 1, "major", "minor")
-    df["key_signature"] = df["key"] + " " + df["mode"]
-
-    with open(path.join("data", "camelot.json")) as json_file:
-            camelot_json = json.load(json_file)
-            wheel = pd.DataFrame.from_dict(camelot_json).iloc[0]
-
-    # Convert diatonic key signatures to Camelot wheel equivalents.
-    df["camelot"] = df["key_signature"].map(lambda x: wheel.loc[wheel == x].index[0]
-)
-    df = df.drop(columns=["key", "mode"])
-
-
-# %%
 def get_history():
     """_summary_
         Convert extended streaming history to DataFrame.
@@ -132,7 +95,7 @@ def get_history():
                 "spotify_track_uri": "id",
             }
         )
-        .reset_index()
+        .reset_index(drop=True)
     )
     # Provide interoperability with API data, which uses "id" instead of "spotify_track_uri"
     df["ts"] = pd.to_datetime(df["ts"])
@@ -144,6 +107,14 @@ def get_history():
     return df
 
 
+
+# %%
+def get_podcasts(df):
+    df = df[df['id'] == False]#.fillna(value=nan) #Todo: keep nan or no
+    return df
+
+
+# %%
 def remove_podcasts(df):
     # Drop podcast episodes. Reorder columns.
     df = (
@@ -156,12 +127,80 @@ def remove_podcasts(df):
                 "show",
             ]
         )
-    ).reset_index()
+    ).reset_index(drop=True)
     return df
 
-def get_podcasts(df):
-    return df[df['id'] == False]#.fillna(value=nan) #Todo: keep nan or no
 
+# %%
+def get_playlist(uri):
+    playlist_df = []
+    offset = 0
+    while True:
+        res = sp.playlist_tracks(
+            uri,
+            offset=offset,
+            fields="items.track.id,items.track.artists,items.track.name,items.track.album,total",
+        )
+        if len(res["items"]) == 0:
+            # Combine inner lists and exit loop
+            # Todo: ask how this comprehension actually works
+            playlist_df = [j for i in playlist_df for j in i]
+            break
+        playlist_df.append(res["items"])
+        offset = offset + len(res["items"])
+        print(offset, "/", res["total"])
+    artist_dict = {"artist": [], "track": [], "id": [], "album": []}
+    for i in range(len(playlist_df)):
+        artist_dict["artist"].append(playlist_df[i]["track"]["artists"][0]["name"])
+        artist_dict["track"].append(playlist_df[i]["track"]["name"])
+        artist_dict["id"].append(playlist_df[i]["track"]["id"])
+        artist_dict["album"].append(playlist_df[i]["track"]["album"]["name"])
+    df = pd.DataFrame(artist_dict)
+    return df
+
+
+
+# %%
+def open_wheel():
+    with open(path.join("data", "camelot.json")) as json_file:
+        camelot_json = json.load(json_file)
+        camelot_wheel = pd.DataFrame.from_dict(camelot_json)
+        return camelot_wheel
+
+
+# %%
+def key_to_camelot(df):
+    df["key"] = (
+        df["key"]
+        .astype(str)
+        .replace(
+            {
+                "-1": "no key detected",
+                "0": "C",
+                "1": "D-flat",
+                "2": "D",
+                "3": "E-flat",
+                "4": "E",
+                "5": "F",
+                "6": "F-sharp",
+                "7": "G",
+                "8": "A-flat",
+                "9": "A",
+                "10": "B-flat",
+                "11": "B",
+            }
+        )
+    )
+
+    df["mode"] = where(df["mode"] == 1, "major", "minor")
+    df["key_signature"] = df["key"] + " " + df["mode"]
+
+    wheel_df = open_wheel().iloc[0]
+
+    # Convert diatonic key signatures to Camelot wheel equivalents.
+    df["camelot"] = df["key_signature"].map(lambda x: wheel_df.loc[wheel_df == x].index[0]
+)
+    df = df.drop(columns=["key", "mode"])
 
 
 # %%
@@ -244,35 +283,6 @@ def add_features(df, length=None, playlist=None):
 
 
 # %%
-def get_playlist(uri):
-    playlist_df = []
-    offset = 0
-    while True:
-        res = sp.playlist_tracks(
-            uri,
-            offset=offset,
-            fields="items.track.id,items.track.artists,items.track.name,items.track.album,total",
-        )
-        if len(res["items"]) == 0:
-            # Combine inner lists and exit loop
-            # Todo: ask how this comprehension actually works
-            playlist_df = [j for i in playlist_df for j in i]
-            break
-        playlist_df.append(res["items"])
-        offset = offset + len(res["items"])
-        print(offset, "/", res["total"])
-    artist_dict = {"artist": [], "track": [], "id": [], "album": []}
-    for i in range(len(playlist_df)):
-        artist_dict["artist"].append(playlist_df[i]["track"]["artists"][0]["name"])
-        artist_dict["track"].append(playlist_df[i]["track"]["name"])
-        artist_dict["id"].append(playlist_df[i]["track"]["id"])
-        artist_dict["album"].append(playlist_df[i]["track"]["album"]["name"])
-    df = pd.DataFrame(artist_dict)
-    return df
-
-
-
-# %%
 def pickl(df, name):
     return df.to_pickle(path.join("data", name))
 
@@ -290,22 +300,24 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = None
+    testlength = 1000
 
-    all_streams = get_history()
-    streams_df = remove_podcasts(all_streams)
+    all_streams_df = get_history()
+    podcasts_df = get_podcasts(all_streams_df)
+    streams_df = remove_podcasts(all_streams_df)
     streams_af_df = add_features(streams_df, length=testlength)
-    podcasts_df = get_podcasts(all_streams)
     playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
     no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
+    wheel_df = open_wheel()
 
     pickl(streams_df, name="streams_df.p")
     pickl(streams_af_df, name="streams_af_df.p")
     pickl(no_skip_df, name="no_skip_df.p")
     pickl(playlist_af_df, name="playlist_af_df.p")
     pickl(podcasts_df, name="podcasts_df.p")
-    # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
-    return streams_af_df
+    pickl(all_streams_df, name="all_streams_df.p")
+    pickl(wheel_df, name="wheel_df.p")
+    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
 
 
 # %%
@@ -314,8 +326,22 @@ def main():
 
 
 # %%
-# # %prun -r main()
-streams_af_df = main()
-streams_af_df
+# Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in 
+# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 
 # %%
+# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
+
+
+# %%
+streams_df
+
+# %%
+all_streams_df
+
+# %%
+podcasts_df
+
+# %%
+wheel_df
