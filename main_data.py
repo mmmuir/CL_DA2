@@ -26,6 +26,7 @@ from numpy import nan, where
 from ratelimit import limits
 
 
+
 # %%
 # Instantiate Spotipy
 cid = "ec23ca502beb44ffb22173b68cd37d9a"
@@ -96,28 +97,29 @@ def key_to_camelot(df):
     df = df.drop(columns=["key", "mode"])
 
 
-# %%
-deletethis = 0
 
+# %%
 def get_history():
     """_summary_
         Convert extended streaming history to DataFrame.
 
     Returns:
         _description_
-        
+
     """
     json_concat = []
     history = glob(path.join("data", "endsong*.json"))
     for i in range(len(history)):
-        
+
         if len(history) == 1:
 
             with open(path.join("data", "endsong.json"), encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif history:
-            with open(path.join("data", f"endsong_{i}.json"), encoding="utf-8") as json_file:
+            with open(
+                path.join("data", f"endsong_{i}.json"), encoding="utf-8"
+            ) as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif not history:
@@ -125,32 +127,64 @@ def get_history():
                 "No streaming history in the current working directory. Visit https://www.spotify.com/account/privacy/ to request your extended streaming history and move the endsong.json files to the notebook directory to run analyses on your extended history."
             )
             break
-    df = [j for i in json_concat for j in i]
-    df = pd.DataFrame(df).drop(columns=['username', 'conn_country', 'ip_addr_decrypted', 'user_agent_decrypted', 'platform', 'incognito_mode', 'offline_timestamp', 'offline', 'skipped']).reset_index().fillna(value=nan)
-    # Provide interoperability with API data, which uses "id" instead of "spotify_track_uri"    
-    df.rename(columns={"spotify_track_uri": "id"}, inplace=True)
+    df = (
+        pd.DataFrame([j for i in json_concat for j in i])
+        .drop(
+            columns=[
+                "username",
+                "conn_country",
+                "ip_addr_decrypted",
+                "user_agent_decrypted",
+                "platform",
+                "incognito_mode",
+                "offline_timestamp",
+                "offline",
+                "skipped",
+            ]
+        )
+        .fillna(value=False)
+        .rename(
+            columns={
+                "master_metadata_track_name": "track",
+                "master_metadata_album_artist_name": "artist",
+                "master_metadata_album_album_name": "album",
+                "reason_start": "start",
+                "reason_end": "end",
+                "episode_name": "episode",
+                "episode_show_name": "show",
+                "spotify_track_uri": "id",
+            }
+        )
+        .reset_index()
+    )
+    # Provide interoperability with API data, which uses "id" instead of "spotify_track_uri"
     df["ts"] = pd.to_datetime(df["ts"])
     df["date"] = df.ts.dt.strftime("%m/%d/%Y")
     df["time"] = df.ts.dt.strftime("%H:%M:%S")
     df["month"] = df.ts.dt.strftime("%m")
     df["year"] = df.ts.dt.strftime("%Y")
-    
+
     return df
+
 
 def remove_podcasts(df):
     # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
     df = (
         df.fillna(value=nan)
-        .loc[df["episode_name"].isna()]
+        .loc[df["episode"].isna()]
         .drop(
             columns=[
                 "spotify_episode_uri",
-                "episode_name",
-                "episode_show_name",
+                "episode",
+                "show",
             ]
         )
     ).reset_index()
     return df
+
+def get_podcasts(df):
+    return df[df['id'] == False]
+
 
 
 # %%
@@ -161,24 +195,25 @@ def open_wheel():
         return wheel
 
 
+
 # %%
 @limits(calls=200, period=30)
-def add_features(deef, length=None, playlist=None):
+def add_features(df, length=None, playlist=None):
     # Specify length for testing purposes
-    deef = deef[:length]
+    df = df[:length]
     # Drop duplicates to limit API calls to include only unique URIs
-    deef_query = deef.drop_duplicates(subset="id")
+    df_query = df.drop_duplicates(subset="id")
     offset_min = 0
     offset_max = 50
     af_res_list = []
     while True:
-        if offset_min > len(deef_query):
+        if offset_min > len(df_query):
             af_res_list = [j for i in af_res_list for j in i]
             merge_cols = pd.DataFrame(af_res_list).loc[
                 :, ["tempo", "duration_ms", "id", "key", "mode"]
             ]
             key_to_camelot(merge_cols)
-            merge_cols = pd.merge(merge_cols, deef)
+            merge_cols = pd.merge(merge_cols, df)
             # Todo: separate function so we can remove these col names from streams_df too in get_history()
             merge_cols = merge_cols.rename(
                 columns={
@@ -228,7 +263,7 @@ def add_features(deef, length=None, playlist=None):
             merge_cols["tempo"] = round(merge_cols["tempo"])
             return merge_cols
         res = sp.audio_features(
-            deef_query["id"].iloc[offset_min:offset_max],
+            df_query["id"].iloc[offset_min:offset_max],
         )
         if None not in res:
             af_res_list.append(res)
@@ -237,6 +272,7 @@ def add_features(deef, length=None, playlist=None):
             af_res_list.append(res)
         offset_min += 50
         offset_max += 50
+
 
 
 # %%
@@ -267,15 +303,18 @@ def get_playlist(uri):
     return df
 
 
+
 # %%
 def pickl(df, name):
     return df.to_pickle(path.join("data", name))
+
 
 
 # %%
 def unpickl(*df):
     for name in df:
         yield pd.read_pickle(path.join("data", name))
+
 
 
 # %%
@@ -286,16 +325,17 @@ def main():
     testlength = 1000
 
     all_streams = get_history()
-    streams_df = remove_podcasts(all_streams)
-    streams_af_df = add_features(streams_df, length=testlength)
-    playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
+    # streams_df = remove_podcasts(all_streams)
+    # streams_af_df = add_features(streams_df, length=testlength)
+    podcasts = get_podcasts(all_streams)
+    # playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
+    # no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
 
     # pickl(streams_df, name="streams_df.p")
     # pickl(streams_af_df, name="streams_af_df.p")
     # pickl(no_skip_df, name="no_skip_df.p")
     # pickl(playlist_af_df, name="playlist_af_df.p")
-    return streams_df, all_streams
+    return podcasts
     # # # %store streams_df streams_af_df no_skip_df playlist_af_df
 
 
@@ -303,11 +343,11 @@ def main():
 # if __name__ == "__main__":
 #     main()
 
-# %%
 
 # %%
-streams_df, all_streams = main()
-streams_df
+podcasts = main()
+podcasts
 
 # %%
-all_streams.query('master_metadata_album_artist_name.isna()')
+all_streams.query("track.isna()")
+
