@@ -82,7 +82,7 @@ def get_history():
                 "skipped",
             ]
         )
-        # .fillna(value="None") # Todo: keep nan or no
+        # .fillna(value="N/A") # Todo: keep nan or no
         .rename(
             columns={
                 "master_metadata_track_name": "track",
@@ -109,8 +109,9 @@ def get_history():
 
 
 # %%
-# def get_podcasts(df):
-#     return df[df['id'] == "None"]
+def get_podcasts(df):
+    return df[df['id'].isnull()].reset_index()
+
 
 # %%
 def remove_podcasts(df):
@@ -301,7 +302,7 @@ def main():
     testlength = 100
 
     all_streams_df = get_history()
-    # podcasts_df = get_podcasts(all_streams_df)
+    podcasts_df = get_podcasts(all_streams_df)
     streams_df = remove_podcasts(all_streams_df)
     streams_af_df = add_features(streams_df, length=testlength)
     playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
@@ -315,8 +316,8 @@ def main():
     # pickl(podcasts_df, name="podcasts_df.p")
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
-    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
-    return streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df
+    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
+    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df
 
     # return podcasts_df
 
@@ -331,10 +332,10 @@ def main():
 
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in 
-# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
-# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
-# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
-# %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
+# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
+# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
+# # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
 
 # %%
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
@@ -344,7 +345,7 @@ def main():
 streams_df
 
 # %%
-all_streams_df
+type(all_streams_df.loc[1][3])
 
 # %%
 podcasts_df
