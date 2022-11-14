@@ -267,7 +267,9 @@ def add_features(df, length=None, playlist=None):
                 ]
                 merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            merge_cols["tempo"] = round(merge_cols["tempo"]).astype(int) # Todo: delete this if it breaks main
+            merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
+                int
+            )  # Todo: delete this if it breaks main
             return merge_cols
         res = sp.audio_features(
             df_query["id"].iloc[offset_min:offset_max],
@@ -279,6 +281,8 @@ def add_features(df, length=None, playlist=None):
             af_res_list.append(res)
         offset_min += 50
         offset_max += 50
+
+
 # %%
 # # This version works with uri
 # #should also have function to get uri from song title + artist
@@ -326,6 +330,7 @@ def get_friendly(
     return df.query(
         "camelot in @friendly_keys & (tempo in @acceptable_tempos | tempo * 2 in @acceptable_tempos | tempo / 2 in @acceptable_tempos)"
     )
+
 
 # %%
 def pickl(df, name):
