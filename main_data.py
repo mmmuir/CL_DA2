@@ -39,16 +39,6 @@ sp = spotipy.Spotify(
 
 
 # %%
-def open_wheel():
-    with open(path.join("data", "camelot.json")) as json_file:
-        camelot_json = json.load(json_file)
-        cam_wheel = pd.DataFrame.from_dict(camelot_json).iloc[0]
-    return cam_wheel
-
-wheel = open_wheel() # todo: delete this
-# print(wheel)
-print(type(wheel))
-
 def key_to_camelot(df):
     df["key"] = (
         df["key"]
@@ -75,39 +65,15 @@ def key_to_camelot(df):
     df["mode"] = where(df["mode"] == 1, "major", "minor")
     df["key_signature"] = df["key"] + " " + df["mode"]
 
-    key_to_wheel = {
-        "A-flat minor": "1A",
-        "B major": "1B",
-        "E-flat minor": "2A",
-        "F-sharp major": "2B",
-        "B-flat minor": "3A",
-        "D-flat major": "3B",
-        "F minor": "4A",
-        "A-flat major": "4B",
-        "C minor": "5A",
-        "E-flat major": "5B",
-        "G minor": "6A",
-        "B-flat major": "6B",
-        "D minor": "7A",
-        "F major": "7B",
-        "A minor": "8A",
-        "C major": "8B",
-        "E minor": "9A",
-        "G major": "9B",
-        "B minor": "10A",
-        "D major": "10B",
-        "F-sharp minor": "11A",
-        "A major": "11B",
-        "D-flat minor": "12A",
-        "E major": "12B",
-    }
+    with open(path.join("data", "camelot.json")) as json_file:
+            camelot_json = json.load(json_file)
+            wheel = pd.DataFrame.from_dict(camelot_json).iloc[0]
+
     # Convert diatonic key signatures to Camelot wheel equivalents.
     df["camelot"] = df["key_signature"].map(lambda x: wheel.loc[wheel == x].index[0]
 )
     df = df.drop(columns=["key", "mode"])
 
-
-# %%
 
 # %%
 def get_history():
@@ -324,7 +290,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 100
+    testlength = None
 
     all_streams = get_history()
     streams_df = remove_podcasts(all_streams)
@@ -338,7 +304,7 @@ def main():
     pickl(no_skip_df, name="no_skip_df.p")
     pickl(playlist_af_df, name="playlist_af_df.p")
     pickl(podcasts_df, name="podcasts_df.p")
-    # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
+    # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
     return streams_af_df
 
 
