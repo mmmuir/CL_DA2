@@ -326,7 +326,9 @@ def get_friendly(
         print(key)
         if type(key) == list:
             friendly_keys.extend(key)
+
     # Show tracks with harmonically compatible key signatures within a given tempo range. Accounts for Spotify's tendency to double or halve numeric tempos.
+
     return df.query(
         "camelot in @friendly_keys & (tempo in @acceptable_tempos | tempo * 2 in @acceptable_tempos | tempo / 2 in @acceptable_tempos)"
     )
@@ -348,7 +350,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = None
+    testlength = 1000
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
@@ -360,13 +362,13 @@ def main():
     )
     wheel_df = open_wheel()
 
-    pickl(streams_df, name="streams_df.p")
-    pickl(streams_af_df, name="streams_af_df.p")
-    pickl(no_skip_df, name="no_skip_df.p")
-    pickl(playlist_af_df, name="playlist_af_df.p")
-    pickl(podcasts_df, name="podcasts_df.p")
-    pickl(all_streams_df, name="all_streams_df.p")
-    pickl(wheel_df, name="wheel_df.p")
+    # pickl(streams_df, name="streams_df.p")
+    # pickl(streams_af_df, name="streams_af_df.p")
+    # pickl(no_skip_df, name="no_skip_df.p")
+    # pickl(playlist_af_df, name="playlist_af_df.p")
+    # pickl(podcasts_df, name="podcasts_df.p")
+    # pickl(all_streams_df, name="all_streams_df.p")
+    # pickl(wheel_df, name="wheel_df.p")
 
 
 # %%
