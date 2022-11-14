@@ -82,7 +82,7 @@ def get_history():
                 "skipped",
             ]
         )
-        .fillna(value="None") # Todo: keep nan or no
+        # .fillna(value="None") # Todo: keep nan or no
         .rename(
             columns={
                 "master_metadata_track_name": "track",
@@ -109,9 +109,8 @@ def get_history():
 
 
 # %%
-def get_podcasts(df):
-    return df[df['id'] == "None"]
-
+# def get_podcasts(df):
+#     return df[df['id'] == "None"]
 
 # %%
 def remove_podcasts(df):
@@ -302,7 +301,7 @@ def main():
     testlength = 1000
 
     all_streams_df = get_history()
-    podcasts_df = get_podcasts(all_streams_df)
+    # podcasts_df = get_podcasts(all_streams_df)
     streams_df = remove_podcasts(all_streams_df)
     streams_af_df = add_features(streams_df, length=testlength)
     playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
@@ -313,14 +312,15 @@ def main():
     pickl(streams_af_df, name="streams_af_df.p")
     pickl(no_skip_df, name="no_skip_df.p")
     pickl(playlist_af_df, name="playlist_af_df.p")
-    pickl(podcasts_df, name="podcasts_df.p")
+    # pickl(podcasts_df, name="podcasts_df.p")
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
-    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
+    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
     # return podcasts_df
 
 # podcasts_df = main()
 # podcasts_df
+main()
 
 # %%
 # if __name__ == "__main__":
