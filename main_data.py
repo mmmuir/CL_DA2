@@ -142,7 +142,7 @@ def get_history():
                 "skipped",
             ]
         )
-        .fillna(value=False)
+        #.fillna(value=False) # Todo: keep nan or no
         .rename(
             columns={
                 "master_metadata_track_name": "track",
@@ -168,9 +168,9 @@ def get_history():
 
 
 def remove_podcasts(df):
-    # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
+    # Drop podcast episodes. Reorder columns.
     df = (
-        df.fillna(value=nan)
+        df#.fillna(value=nan) #Todo: keep nan or no
         .loc[df["episode"].isna()]
         .drop(
             columns=[
@@ -183,13 +183,13 @@ def remove_podcasts(df):
     return df
 
 def get_podcasts(df):
-    return df[df['id'] == False]
+    return df[df['id'] == False]#.fillna(value=nan) #Todo: keep nan or no
 
 
 
 # %%
 def open_wheel():
-    with open("camelot.json") as json_file:
+    with open(path.join("data", "camelot.json")) as json_file:
         camelot_json = json.load(json_file)
         wheel = camelot_json
         return wheel
@@ -325,18 +325,18 @@ def main():
     testlength = 1000
 
     all_streams = get_history()
-    # streams_df = remove_podcasts(all_streams)
-    # streams_af_df = add_features(streams_df, length=testlength)
-    podcasts = get_podcasts(all_streams)
-    # playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    # no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
+    streams_df = remove_podcasts(all_streams)
+    streams_af_df = add_features(streams_df, length=testlength)
+    podcasts_df = get_podcasts(all_streams)
+    playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
+    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
 
-    # pickl(streams_df, name="streams_df.p")
-    # pickl(streams_af_df, name="streams_af_df.p")
-    # pickl(no_skip_df, name="no_skip_df.p")
-    # pickl(playlist_af_df, name="playlist_af_df.p")
-    return podcasts
-    # # # %store streams_df streams_af_df no_skip_df playlist_af_df
+    pickl(streams_df, name="streams_df.p")
+    pickl(streams_af_df, name="streams_af_df.p")
+    pickl(no_skip_df, name="no_skip_df.p")
+    pickl(playlist_af_df, name="playlist_af_df.p")
+    pickl(podcasts_df, name="podcasts_df.p")
+    # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df
 
 
 # %%
@@ -345,9 +345,7 @@ def main():
 
 
 # %%
-podcasts = main()
-podcasts
+# # %prun -r main()
 
 # %%
-all_streams.query("track.isna()")
-
+# # %store -r streams_af_df
