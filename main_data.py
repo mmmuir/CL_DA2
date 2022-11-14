@@ -21,6 +21,7 @@ from glob import glob
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 import pandas as pd
+import numpy as np
 from numpy import nan, where
 from ratelimit import limits
 
@@ -107,14 +108,16 @@ def get_history():
         
     """
     json_concat = []
-    history = glob(path.join("backups", "endsong_*_test.json"))
+    history = glob(path.join("data", "endsong*.json"))
     for i in range(len(history)):
+        
         if len(history) == 1:
-            with open(path.join("backups", "endsong_0.json"), encoding="utf-8") as json_file:
+
+            with open(path.join("data", "endsong.json"), encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif history:
-            with open(path.join("backups", f"endsong_{i}_test.json"), encoding="utf-8") as json_file:
+            with open(path.join("data", f"endsong_{i}.json"), encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif not history:
@@ -123,36 +126,30 @@ def get_history():
             )
             break
     df = [j for i in json_concat for j in i]
-    df = pd.DataFrame(df)
+    df = pd.DataFrame(df).drop(columns=['username', 'conn_country', 'ip_addr_decrypted', 'user_agent_decrypted', 'platform', 'incognito_mode', 'offline_timestamp', 'offline', 'skipped']).reset_index().fillna(value=nan)
+    # Provide interoperability with API data, which uses "id" instead of "spotify_track_uri"    
+    df.rename(columns={"spotify_track_uri": "id"}, inplace=True)
+    df["ts"] = pd.to_datetime(df["ts"])
+    df["date"] = df.ts.dt.strftime("%m/%d/%Y")
+    df["time"] = df.ts.dt.strftime("%H:%M:%S")
+    df["month"] = df.ts.dt.strftime("%m")
+    df["year"] = df.ts.dt.strftime("%Y")
     
-    # df.rename(columns={"spotify_track_uri": "id"}, inplace=True)
-    # df["ts"] = pd.to_datetime(df["ts"])
-    # df["date"] = df.ts.dt.strftime("%m/%d/%Y")
-    # df["time"] = df.ts.dt.strftime("%H:%M:%S")
-    # df["month"] = df.ts.dt.strftime("%m")
-    # df["year"] = df.ts.dt.strftime("%Y")
+    return df
 
-    # # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
-    # df = (
-    #     df.fillna(value=nan)
-    #     .loc[df["episode_name"].isna()]
-    #     .drop(
-    #         columns=[
-    #             "spotify_episode_uri",
-    #             "episode_name",
-    #             "episode_show_name",
-    #             "username",
-    #             "ip_addr_decrypted",
-    #             "user_agent_decrypted",
-    #             "platform",
-    #             "conn_country",
-    #             "offline",
-    #             "offline_timestamp",
-    #             "incognito_mode",
-    #             "skipped",
-    #         ]
-    #     )
-    # )
+def remove_podcasts(df):
+    # Replace NoneType values with NaN. Drop podcast episodes. Reorder columns.
+    df = (
+        df.fillna(value=nan)
+        .loc[df["episode_name"].isna()]
+        .drop(
+            columns=[
+                "spotify_episode_uri",
+                "episode_name",
+                "episode_show_name",
+            ]
+        )
+    ).reset_index()
     return df
 
 
@@ -286,17 +283,19 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = None
-    streams_df = get_history().reset_index()
-    # streams_af_df = add_features(streams_df, length=testlength)
-    # playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    # no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
+    testlength = 1000
+
+    all_streams = get_history()
+    streams_df = remove_podcasts(all_streams)
+    streams_af_df = add_features(streams_df, length=testlength)
+    playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
+    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.51").reset_index()
 
     # pickl(streams_df, name="streams_df.p")
     # pickl(streams_af_df, name="streams_af_df.p")
     # pickl(no_skip_df, name="no_skip_df.p")
     # pickl(playlist_af_df, name="playlist_af_df.p")
-    return streams_df
+    return streams_df, all_streams
     # # # %store streams_df streams_af_df no_skip_df playlist_af_df
 
 
@@ -305,7 +304,10 @@ def main():
 #     main()
 
 # %%
-streams_df = main()
+
+# %%
+streams_df, all_streams = main()
 streams_df
 
 # %%
+all_streams.query('master_metadata_album_artist_name.isna()')
