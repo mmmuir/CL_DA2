@@ -272,7 +272,7 @@ def add_features(df, length=None, playlist=None):
                         "time",
                         "dtime",
                         "ddate",
-                        "day"
+                        "day",
                         "month",
                         "year",
                         "tempo",
@@ -282,7 +282,7 @@ def add_features(df, length=None, playlist=None):
                         "end",
                         "shuffle",
                         "id",
-                        "timestamp",
+                        "timestamp"
                     ]
                 ]
                 # merge_cols["date"] = merge_cols["date"].astype(str)
@@ -374,7 +374,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = None
+    testlength = 2
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
