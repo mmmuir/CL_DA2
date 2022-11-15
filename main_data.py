@@ -374,7 +374,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 2
+    testlength = None
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
@@ -404,8 +404,8 @@ def main():
 
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
-# %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
+# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 # # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
 
