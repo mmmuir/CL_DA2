@@ -26,6 +26,7 @@ from numpy import nan, where
 from ratelimit import limits
 
 
+
 # %%
 # Instantiate Spotipy
 cid = "ec23ca502beb44ffb22173b68cd37d9a"
@@ -91,18 +92,23 @@ def get_history():
                 "episode_name": "episode",
                 "episode_show_name": "show",
                 "spotify_track_uri": "id",
+                "ms_played": "playtime",
+                "ts": "timestamp",
             }
         )
         .reset_index(drop=True)
     )
-    # Provide interoperability with API data, which uses "id" instead of "spotify_track_uri"
-    df["ts"] = pd.to_datetime(df["ts"])
-    df["date"] = df.ts.dt.strftime("%m/%d/%Y")
-    df["time"] = df.ts.dt.strftime("%H:%M:%S")
-    df["month"] = df.ts.dt.strftime("%m")
-    df["year"] = df.ts.dt.strftime("%Y")
-
+    df["playtime"] = round(df["playtime"].copy() / 1000).astype(int)
+    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"])
+    df["ddate"] = df[["timestamp"]].apply(lambda x: x.dt.date)
+    df["dtime"] = df[["timestamp"]].apply(lambda x: x.dt.time)
+    df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
+    df["time"] = df.timestamp.dt.strftime("%H:%M:%S")
+    df["month"] = df.timestamp.dt.strftime("%b")
+    df["year"] = df.timestamp.dt.strftime("%Y")
+    df["day"] = df.timestamp.dt.strftime("%a")
     return df
+
 
 
 # %%
@@ -112,6 +118,7 @@ def get_podcasts(df):
         .reset_index(drop=True)
         .drop(columns=["track", "artist", "album", "id", "shuffle"])
     )
+
 
 
 # %%
@@ -129,6 +136,7 @@ def remove_podcasts(df):
         )
     ).reset_index(drop=True)
     return df
+
 
 
 # %%
@@ -159,12 +167,14 @@ def get_playlist(uri):
     return df
 
 
+
 # %%
 def open_wheel():
     with open(path.join("data", "camelot.json")) as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
         return camelot_wheel
+
 
 
 # %%
@@ -203,6 +213,7 @@ def key_to_camelot(df):
     df = df.drop(columns=["key", "mode"])
 
 
+
 # %%
 @limits(calls=200, period=30)
 def add_features(df, length=None, playlist=None):
@@ -216,21 +227,26 @@ def add_features(df, length=None, playlist=None):
     while True:
         if offset_min > len(df_query):
             af_res_list = [j for i in af_res_list for j in i]
-            merge_cols = pd.DataFrame(af_res_list).loc[
-                :, ["tempo", "duration_ms", "id", "key", "mode"]
-            ]
+            merge_cols = (
+                pd.DataFrame(af_res_list)
+                .loc[:, ["tempo", "duration_ms", "id", "key", "mode"]]
+                .rename(
+                    columns={
+                        "master_metadata_track_name": "track",
+                        "master_metadata_album_artist_name": "artist",
+                        "master_metadata_album_album_name": "album",
+                        "reason_start": "start",
+                        "reason_end": "end",
+                        "duration_ms": "duration",
+                        "ms_played": "playtime",
+                        "ts": "timestamp",
+                    }
+                )
+            )
+
             key_to_camelot(merge_cols)
             merge_cols = pd.merge(merge_cols, df)
             # Todo: separate function so we can remove these col names from streams_df too in get_history()
-            merge_cols = merge_cols.rename(
-                columns={
-                    "master_metadata_track_name": "track",
-                    "master_metadata_album_artist_name": "artist",
-                    "master_metadata_album_album_name": "album",
-                    "reason_start": "start",
-                    "reason_end": "end",
-                }
-            )
             if playlist:
                 merge_cols = merge_cols[
                     [
@@ -241,6 +257,7 @@ def add_features(df, length=None, playlist=None):
                         "camelot",
                         "key_signature",
                         "id",
+                        "duration"
                     ]
                 ]
             elif not playlist:
@@ -249,10 +266,13 @@ def add_features(df, length=None, playlist=None):
                         "artist",
                         "track",
                         "album",
-                        "duration_ms",
-                        "ms_played",
+                        "duration",
+                        "playtime",
                         "date",
                         "time",
+                        "dtime",
+                        "ddate",
+                        "day",
                         "month",
                         "year",
                         "tempo",
@@ -262,11 +282,12 @@ def add_features(df, length=None, playlist=None):
                         "end",
                         "shuffle",
                         "id",
-                        "ts",
+                        "timestamp"
                     ]
                 ]
-                merge_cols["date"] = merge_cols["date"].astype(str)
+                # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
+            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(int)
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
@@ -281,6 +302,7 @@ def add_features(df, length=None, playlist=None):
             af_res_list.append(res)
         offset_min += 50
         offset_max += 50
+
 
 
 # %%
@@ -323,7 +345,6 @@ def get_friendly(
     for i in range(len(shift)):
         key = wheel[song_selected["camelot"]][shift[i]]
         friendly_keys.append(key)
-        print(key)
         if type(key) == list:
             friendly_keys.extend(key)
 
@@ -334,9 +355,11 @@ def get_friendly(
     )
 
 
+
 # %%
-def pickl(df, name):
+def pickl(df, name, all=False):
     return df.to_pickle(path.join("data", name))
+
 
 
 # %%
@@ -345,35 +368,39 @@ def unpickl(*df):
         yield pd.read_pickle(path.join("data", name))
 
 
+
 # %%
 def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 1000
+    testlength = None
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
     streams_df = remove_podcasts(all_streams_df)
     streams_af_df = add_features(streams_df, length=testlength)
     playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    no_skip_df = streams_af_df.query("(ms_played / duration_ms) > 0.75").reset_index(
+    no_skip_df = streams_af_df.query("(playtime / duration) > 0.75").reset_index(
         drop=True
     )
     wheel_df = open_wheel()
 
-    # pickl(streams_df, name="streams_df.p")
-    # pickl(streams_af_df, name="streams_af_df.p")
-    # pickl(no_skip_df, name="no_skip_df.p")
-    # pickl(playlist_af_df, name="playlist_af_df.p")
-    # pickl(podcasts_df, name="podcasts_df.p")
-    # pickl(all_streams_df, name="all_streams_df.p")
-    # pickl(wheel_df, name="wheel_df.p")
+    pickl(streams_df, name="streams_df.p")
+    pickl(streams_af_df, name="streams_af_df.p")
+    pickl(no_skip_df, name="no_skip_df.p")
+    pickl(playlist_af_df, name="playlist_af_df.p")
+    pickl(podcasts_df, name="podcasts_df.p")
+    pickl(all_streams_df, name="all_streams_df.p")
+    pickl(wheel_df, name="wheel_df.p")
+    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
 
 
 # %%
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
+
+# # %prun -r main()
 
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
@@ -382,5 +409,7 @@ if __name__ == "__main__":
 # # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
 
+
 # %%
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
+
