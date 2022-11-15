@@ -67,6 +67,7 @@ def get_history():
                 "No streaming history in the current working directory. Visit https://www.spotify.com/account/privacy/ to request your extended streaming history and move the endsong.json files to the notebook directory to run analyses on your extended history."
             )
             break
+    print(json_concat[0])
     df = (
         pd.DataFrame([j for i in json_concat for j in i])
         .drop(
@@ -92,14 +93,13 @@ def get_history():
                 "episode_name": "episode",
                 "episode_show_name": "show",
                 "spotify_track_uri": "id",
-                "duration_ms": "duration",
                 "ms_played": "playtime",
                 "ts": "timestamp",
             }
         )
         .reset_index(drop=True)
     )
-    df["playtime"] = df["playtime"].copy() / 1000
+    df["playtime"] = df["playtime"].copy().astype(int) / 1000
     df["timestamp"] = pd.to_datetime(df.copy()["timestamp"])
     df["ddate"] = df[["timestamp"]].apply(lambda x: x.dt.date)
     df["dtime"] = df[["timestamp"]].apply(lambda x: x.dt.time)
@@ -246,6 +246,7 @@ def add_features(df, length=None, playlist=None):
                     }
                 )
             )
+
             key_to_camelot(merge_cols)
             merge_cols = pd.merge(merge_cols, df)
             # Todo: separate function so we can remove these col names from streams_df too in get_history()
@@ -283,8 +284,10 @@ def add_features(df, length=None, playlist=None):
                         "timestamp",
                     ]
                 ]
-                merge_cols["date"] = merge_cols["date"].astype(str)
+                # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
+            df["duration_ms"] = round(df["duration_ms"].copy() / 1000).astype(int)
+
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
