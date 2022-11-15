@@ -98,7 +98,7 @@ def get_history():
         )
         .reset_index(drop=True)
     )
-    df["playtime"] = df["playtime"].copy().astype(int) / 1000
+    df["playtime"] = round(df["playtime"].copy() / 1000).astype(int)
     df["timestamp"] = pd.to_datetime(df.copy()["timestamp"])
     df["ddate"] = df[["timestamp"]].apply(lambda x: x.dt.date)
     df["dtime"] = df[["timestamp"]].apply(lambda x: x.dt.time)
@@ -258,6 +258,7 @@ def add_features(df, length=None, playlist=None):
                         "camelot",
                         "key_signature",
                         "id",
+                        "duration"
                     ]
                 ]
             elif not playlist:
@@ -284,7 +285,7 @@ def add_features(df, length=None, playlist=None):
                 ]
                 # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            merge_cols["duration_ms"] = round(df["duration_ms"].copy() / 1000).astype(int)
+            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(int)
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
@@ -371,7 +372,7 @@ def main():
     # Example playlist
     uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
-    testlength = 10
+    testlength = None
 
     all_streams_df = get_history()
     podcasts_df = get_podcasts(all_streams_df)
@@ -390,17 +391,18 @@ def main():
     pickl(podcasts_df, name="podcasts_df.p")
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
-
+    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
 
 
 # %%
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
 
+# # %prun -r main()
 
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 # # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
