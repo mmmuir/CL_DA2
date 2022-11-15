@@ -107,7 +107,6 @@ def get_history():
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-
     return df
 
 
@@ -271,6 +270,9 @@ def add_features(df, length=None, playlist=None):
                         "playtime",
                         "date",
                         "time",
+                        "dtime",
+                        "ddate",
+                        "day"
                         "month",
                         "year",
                         "tempo",
