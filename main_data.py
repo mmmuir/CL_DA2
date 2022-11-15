@@ -67,7 +67,6 @@ def get_history():
                 "No streaming history in the current working directory. Visit https://www.spotify.com/account/privacy/ to request your extended streaming history and move the endsong.json files to the notebook directory to run analyses on your extended history."
             )
             break
-    print(json_concat[0])
     df = (
         pd.DataFrame([j for i in json_concat for j in i])
         .drop(
@@ -155,7 +154,6 @@ def get_playlist(uri):
             # Combine inner lists and exit loop
             # Todo: ask how this comprehension actually works
             playlist_df = [j for i in playlist_df for j in i]
-            print(playlist_df)
             break
         playlist_df.append(res["items"])
         offset = offset + len(res["items"])
@@ -286,8 +284,7 @@ def add_features(df, length=None, playlist=None):
                 ]
                 # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            df["duration_ms"] = round(df["duration_ms"].copy() / 1000).astype(int)
-
+            merge_cols["duration_ms"] = round(df["duration_ms"].copy() / 1000).astype(int)
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
@@ -345,7 +342,6 @@ def get_friendly(
     for i in range(len(shift)):
         key = wheel[song_selected["camelot"]][shift[i]]
         friendly_keys.append(key)
-        print(key)
         if type(key) == list:
             friendly_keys.extend(key)
 
