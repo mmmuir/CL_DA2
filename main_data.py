@@ -348,6 +348,14 @@ def get_friendly(
         "camelot in @friendly_keys & (tempo in @acceptable_tempos | tempo * 2 in @acceptable_tempos | tempo / 2 in @acceptable_tempos)"
     )
 
+    # Todo: delete if unnecessary
+    # def show_transformations(df, song, transformation="all"):
+    #     song_key = df.query("(id == @song)")["camelot"]
+    #     # print(song_key)
+    #     keys = wheel_df.loc[transformation, song_key].reset_index(drop=True)
+    #     # print(type(keys))
+    #     print(keys[0])
+    #     return df.query("camelot.isin(@keys[0])", engine="python")
 
 # %%
 def pickl(df, name, all=False):
