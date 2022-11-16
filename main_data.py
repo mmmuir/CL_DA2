@@ -26,7 +26,6 @@ from numpy import nan, where
 from ratelimit import limits
 
 
-
 # %%
 # Instantiate Spotipy
 cid = "ec23ca502beb44ffb22173b68cd37d9a"
@@ -110,7 +109,6 @@ def get_history():
     return df
 
 
-
 # %%
 def get_podcasts(df):
     return (
@@ -118,7 +116,6 @@ def get_podcasts(df):
         .reset_index(drop=True)
         .drop(columns=["track", "artist", "album", "id", "shuffle"])
     )
-
 
 
 # %%
@@ -136,7 +133,6 @@ def remove_podcasts(df):
         )
     ).reset_index(drop=True)
     return df
-
 
 
 # %%
@@ -167,14 +163,12 @@ def get_playlist(uri):
     return df
 
 
-
 # %%
 def open_wheel():
     with open(path.join("data", "camelot.json")) as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
         return camelot_wheel
-
 
 
 # %%
@@ -211,7 +205,6 @@ def key_to_camelot(df):
         lambda x: wheel_df.loc[wheel_df == x].index[0]
     )
     df = df.drop(columns=["key", "mode"])
-
 
 
 # %%
@@ -257,7 +250,7 @@ def add_features(df, length=None, playlist=None):
                         "camelot",
                         "key_signature",
                         "id",
-                        "duration"
+                        "duration",
                     ]
                 ]
             elif not playlist:
@@ -282,12 +275,14 @@ def add_features(df, length=None, playlist=None):
                         "end",
                         "shuffle",
                         "id",
-                        "timestamp"
+                        "timestamp",
                     ]
                 ]
                 # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(int)
+            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(
+                int
+            )
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
@@ -302,7 +297,6 @@ def add_features(df, length=None, playlist=None):
             af_res_list.append(res)
         offset_min += 50
         offset_max += 50
-
 
 
 # %%
@@ -355,18 +349,15 @@ def get_friendly(
     )
 
 
-
 # %%
 def pickl(df, name, all=False):
     return df.to_pickle(path.join("data", name))
-
 
 
 # %%
 def unpickl(*df):
     for name in df:
         yield pd.read_pickle(path.join("data", name))
-
 
 
 # %%
@@ -412,4 +403,3 @@ def main():
 
 # %%
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
-
