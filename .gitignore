@@ -4,3 +4,4 @@ junk/
 __pycache__/
 venv_sp/
 endsong*.json
+.ipynb*check*
