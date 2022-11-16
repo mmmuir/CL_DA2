@@ -1,0 +1,6 @@
+backups/
+data/
+junk/
+__pycache__/
+venv_sp/
+endsong*.json
