@@ -1,20 +1,3 @@
-# ---
-# jupyter:
-#   jupytext:
-#     cell_metadata_filter: -all
-#     custom_cell_magics: kql
-#     text_representation:
-#       extension: .py
-#       format_name: percent
-#       format_version: '1.3'
-#       jupytext_version: 1.11.2
-#   kernelspec:
-#     display_name: venv_sp
-#     language: python
-#     name: python3
-# ---
-
-# %%
 import json
 from os import path
 from glob import glob
@@ -26,8 +9,6 @@ from numpy import nan, where
 from ratelimit import limits
 
 
-
-# %%
 # Instantiate Spotipy
 CID = "ec23ca502beb44ffb22173b68cd37d9a"
 SECRET = "556c805ce20848ed94194c081f0c96a8"
@@ -38,7 +19,6 @@ sp = spotipy.Spotify(
 )
 
 
-# %%
 def get_history():
     """_summary_
         Convert extended streaming history to DataFrame.
@@ -100,7 +80,9 @@ def get_history():
         .reset_index(drop=True)
     )
     df["playtime_s"] = round(df["playtime_s"].copy() / 1000).astype(int)
-    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert("EST")
+    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert(
+        "EST"
+    )
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
@@ -109,21 +91,17 @@ def get_history():
     return df
 
 
-
-# %%
 def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
         .drop(columns=["track", "artist", "album", "shuffle", "id"])
-        .rename(columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"})
+        .rename(
+            columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"}
+        )
     )
 
 
-
-# %%
-
-# %%
 def remove_pods(df):
     # Drop podcast episodes. Reorder columns.
     df = (
@@ -140,8 +118,6 @@ def remove_pods(df):
     return df
 
 
-
-# %%
 def get_playlist(uri):
 
     playlist_df = []
@@ -170,8 +146,6 @@ def get_playlist(uri):
     return df
 
 
-
-# %%
 def open_wheel():
     with open(path.join("data", "camelot.json")) as json_file:
         camelot_json = json.load(json_file)
@@ -179,8 +153,6 @@ def open_wheel():
         return camelot_wheel
 
 
-
-# %%
 def key_to_camelot(df):
     df["key"] = (
         df["key"]
@@ -216,8 +188,6 @@ def key_to_camelot(df):
     df = df.drop(columns=["key", "mode"])
 
 
-
-# %%
 @limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
     # Specify length in main() for testing purposes
@@ -287,9 +257,7 @@ def add_features(df, length=None, playlist=None):
             merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(
                 int
             )
-            merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
-                int
-            )
+            merge_cols["tempo"] = round(merge_cols["tempo"]).astype(int)
             return merge_cols
         res = sp.audio_features(
             df_query["id"].iloc[offset_min:offset_max],
@@ -303,8 +271,6 @@ def add_features(df, length=None, playlist=None):
         offset_max += 50
 
 
-
-# %%
 # # This version works with uri
 # #should also have function to get uri from song title + artist
 # #todo: proper type hinting and default values
@@ -353,22 +319,16 @@ def get_friendly(
     )
 
 
-
-# %%
 def df_to_json(df, name):
     return df.to_json(path.join("data", name))
 
 
-
-# %%
 def json_to_df(*df):
 
     for name in df:
         yield pd.read_json(path.join("data", name))
 
 
-
-# %%
 def main():
 
     # Example playlist
@@ -394,32 +354,6 @@ def main():
     df_to_json(all_streams, name="all_streams.json")
     df_to_json(wheel_df, name="wheel_df.json")
 
-    return (
-        music_streams_no_features,
-        music_streams,
-        no_skip_df,
-        playlist_example,
-        podcasts,
-        all_streams,
-        wheel_df,
-    )
 
-
-# %%
-# if __name__ == "__main__":
-#     main()
-
-
-
-# %%
-# # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# # %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
-# # %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
-
-
-
-# %%
-music_streams
-
-# %%
-
+if __name__ == "__main__":
+    main()
