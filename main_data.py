@@ -82,11 +82,12 @@ def get_history():
     df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
     df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
     df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
-    # df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
+    df = df[df["artist"].str.contains("myNoise") == False]
     return df
 
 
