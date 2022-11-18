@@ -11,7 +11,7 @@ from ratelimit import limits
 
 # Instantiate Spotipy
 CID = "ec23ca502beb44ffb22173b68cd37d9a"
-SECRET = "secret key herenan"
+SECRET = "secret key here"
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
         client_id=CID, client_secret=SECRET

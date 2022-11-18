@@ -3,7 +3,7 @@
 1: First, ensure [Python 3.10.0](https://www.python.org/downloads/release/python-3100/) is installed on your machine.
 If you are unable to install 3.10.0, 3.9.10+ should work, but compatibility is not guaranteed.
 
-2: From your bash terminal (Linux/macOS) or Git Bash (Windows), clone the repository:
+2: From your Bash terminal (Linux/macOS) or [Git Bash](https://appuals.com/what-is-git-bash/) (Windows), clone the repository:
 
 `git clone https://github.com/mmmuir/cl_da2_clone`
 
@@ -41,3 +41,9 @@ If you are unable to install 3.10.0, 3.9.10+ should work, but compatibility is n
 "incognito_mode": null/true/false,
 }]
 ```
+
+6: If using your own data, I recommend running `python remove_identifier.py` before proceeding, unless you intend to perform analyses which depend on the data present in those columns, e.g. queries attempting to distinguish home vs. public listening on the basis of IP address / platform. Try `grep '\"ip\_addr\_decrypted\"\:*\"' ./data/endsong*.json` in Bash/Git Bash ensure personal identifiers were properly scrubbed; more robust tests are on the roadmap.
+
+# `main_data.py`
+
+This file serves as the primary data wrangler, as well as a module containing functions used by `analysis.ipynb`. First, it instantiates an instance of `spotipy.Spotify`, allowing the program to make API calls. **A demo secret key was provided with the project submission form; if it was not forwarded to you, please contact... whoever is in charge of that, and/or check the `git log` of this repository to find my e-mail address.
