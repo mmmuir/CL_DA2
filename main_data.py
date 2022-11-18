@@ -79,7 +79,9 @@ def get_history():
         )
         .reset_index(drop=True)
     )
-    df["playtime_s"] = round(df["playtime_s"].copy() / 1000).astype(int)
+    df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
+    df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
+    df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
     df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert(
         "EST"
     )
@@ -87,7 +89,7 @@ def get_history():
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-    # Todo: convert march 2020 thru june 2020 to MST df.loc["2020-03-01":"2020-07-01"].timestamp.dt.tz_convert("MST")
+    # : convert march 2020 thru june 2020 to MST df.loc["2020-03-01":"2020-07-01"].timestamp.dt.tz_convert("MST")
     return df
 
 
@@ -105,7 +107,7 @@ def get_pods(df):
 def remove_pods(df):
     # Drop podcast episodes. Reorder columns.
     df = (
-        df.fillna(value=nan)  # Todo: keep nan or no
+        df.fillna(value=nan)
         .loc[df["episode"].isna()]
         .drop(
             columns=[
@@ -130,7 +132,6 @@ def get_playlist(uri):
         )
         if len(res["items"]) == 0:
             # Combine inner lists and exit loop
-            # Todo: ask how this comprehension actually works
             playlist_df = [j for i in playlist_df for j in i]
             break
         playlist_df.append(res["items"])
@@ -219,7 +220,7 @@ def add_features(df, length=None, playlist=None):
 
             key_to_camelot(merge_cols)
             merge_cols = pd.merge(merge_cols, df)
-            # Todo: separate function so we can remove these col names from music_streams_no_features too in get_history()
+            # : separate function so we can remove these col names from music_streams_no_features too in get_history()
             if playlist:
                 merge_cols = merge_cols[
                     [
@@ -240,7 +241,7 @@ def add_features(df, length=None, playlist=None):
                         "track",
                         "album",
                         "duration",
-                        "playtime_s",
+                        "playtime_m",
                         "date",
                         "day",
                         "month",
@@ -251,6 +252,8 @@ def add_features(df, length=None, playlist=None):
                         "shuffle",
                         "id",
                         "timestamp",
+                        'playtime_s',
+                        'playtime_h'
                     ]
                 ]
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
@@ -273,7 +276,7 @@ def add_features(df, length=None, playlist=None):
 
 # # This version works with uri
 # #should also have function to get uri from song title + artist
-# #todo: proper type hinting and default values
+# #: proper type hinting and default values
 # # separate functions i suppose, maybe with decorators
 # # https://stackoverflow.com/questions/62153371/best-way-to-create-python-function-with-multiple-options
 
@@ -320,20 +323,19 @@ def get_friendly(
 
 
 def df_to_json(df, name):
-    return df.to_json(path.join("data", name))
+    return df.to_json(path.join("junk", name))
 
 
 def json_to_df(*df):
 
     for name in df:
-        yield pd.read_json(path.join("data", name))
+        yield pd.read_json(path.join("junk", name))
 
 
 def main():
 
     # Example playlist
     URI = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
-    # Todo: delete for production
     testlength = None
 
     all_streams = get_history()
@@ -346,7 +348,7 @@ def main():
     )
     wheel_df = open_wheel()
 
-    df_to_json(music_streams_no_features, name="music_streams_no_features.json")
+    df_to_json(music_streams_no_features, name="test_music_streams_no_features.json")
     df_to_json(music_streams, name="music_streams.json")
     df_to_json(no_skip_df, name="no_skip_df_test.json")
     df_to_json(playlist_example, name="playlist_example.json")
