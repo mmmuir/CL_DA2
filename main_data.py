@@ -81,6 +81,8 @@ def get_history():
                 "offline_timestamp",
                 "offline",
                 "skipped",
+                "reason_start",
+                "reason_end",
             ]
         )
         .rename(
@@ -88,12 +90,10 @@ def get_history():
                 "master_metadata_track_name": "track",
                 "master_metadata_album_artist_name": "artist",
                 "master_metadata_album_album_name": "album",
-                "reason_start": "start",
-                "reason_end": "end",
-                "episode_name": "episode",
-                "episode_show_name": "show",
                 "spotify_track_uri": "id",
                 "ms_played": "playtime_s",
+                "episode_name": "episode",
+                "episode_show_name": "show",
                 "ts": "timestamp",
             }
         )
@@ -115,7 +115,8 @@ def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
-        .drop(columns=["track", "artist", "album", "id", "shuffle"])
+        .drop(columns=["track", "artist", "album", "shuffle"])
+        .rename(columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"})
     )
 
 
@@ -214,9 +215,9 @@ def key_to_camelot(df):
 
 
 # %%
-@limits(calls=200, period=30)
+@limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
-    # Specify length for testing purposes
+    # Specify length in main() for testing purposes
     df = df[:length]
     # Drop duplicates to limit API calls to include only unique URIs
     df_query = df.drop_duplicates(subset="id")
@@ -256,7 +257,7 @@ def add_features(df, length=None, playlist=None):
                         "camelot",
                         "key_signature",
                         "id",
-                        "duration"
+                        "duration",
                     ]
                 ]
             elif not playlist:
@@ -268,25 +269,22 @@ def add_features(df, length=None, playlist=None):
                         "duration",
                         "playtime_s",
                         "date",
-                        "time",
-                        "dtime",
-                        "ddate",
                         "day",
                         "month",
                         "year",
                         "tempo",
                         "camelot",
                         "key_signature",
-                        "start",
-                        "end",
                         "shuffle",
                         "id",
-                        "timestamp"
+                        "timestamp",
                     ]
                 ]
                 # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
-            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(int)
+            merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(
+                int
+            )
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
             )  # Todo: delete this if it breaks main
@@ -355,34 +353,22 @@ def get_friendly(
 
 
 # %%
-def pickl(df, name, all=False):
-    return df.to_pickle(path.join("data", name))
-
-
-
-# %%
-# Todo: make work for one file
-def unpickl(*df):
-    for name in df:
-        yield pd.read_pickle(path.join("data", name))
-
-
-
-# %%
-def jsn(df, name):
+def df_to_json(df, name):
     return df.to_json(path.join("data", name))
 
 
+
 # %%
-def dejsn(*df):
+def json_to_df(*df):
     for name in df:
         yield pd.read_json(path.join("data", name))
+
 
 
 # %%
 def main():
     # Example playlist
-    uri = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
+    URI = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
     testlength = None
 
@@ -390,40 +376,46 @@ def main():
     podcasts = get_pods(all_streams)
     music_streams_no_features = remove_pods(all_streams)
     music_streams = add_features(music_streams_no_features, length=testlength)
-    playlist_example = add_features(get_playlist(uri), length=testlength, playlist=True)
+    playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
     no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
         drop=True
     )
     wheel_df = open_wheel()
 
-    pickl(all_streams, name="all_streams.p")
-    pickl(music_streams_no_features, name="music_streams_no_features.p")
-    pickl(music_streams, name="music_streams.p")
-    pickl(no_skip_df, name="no_skip_df.p")
-    pickl(playlist_example, name="playlist_example.p")
-    pickl(podcasts, name="podcasts.p")
-    pickl(all_streams, name="all_streams.p")
-    pickl(wheel_df, name="wheel_df.p")
-    jsn(music_streams_no_features, name="music_streams_no_features.json")
-    jsn(music_streams, name="music_streams.json")
-    jsn(no_skip_df, name="no_skip_df.json")
-    jsn(playlist_example, name="playlist_example.json")
-    jsn(podcasts, name="podcasts.json")
-    jsn(all_streams, name="all_streams.json")
-    jsn(wheel_df, name="wheel_df.json")
-    return music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df
+    df_to_json(music_streams_no_features, name="music_streams_no_features.json")
+    df_to_json(music_streams, name="music_streams.json")
+    df_to_json(no_skip_df, name="no_skip_df_test.json")
+    df_to_json(playlist_example, name="playlist_example.json")
+    df_to_json(podcasts, name="podcasts.json")
+    df_to_json(all_streams, name="all_streams.json")
+    df_to_json(wheel_df, name="wheel_df.json")
+
+    return (
+        music_streams_no_features,
+        music_streams,
+        no_skip_df,
+        playlist_example,
+        podcasts,
+        all_streams,
+        wheel_df,
+    )
 
 
 # %%
 # if __name__ == "__main__":
 #     main()
 
+
+
 # %%
-# Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
+# # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
 # %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
-# %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
+# # %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
 
 
+
+# %%
+podcasts
 
 # %%
 
