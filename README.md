@@ -77,3 +77,6 @@ This file serves as the primary data wrangler, as well as a module containing fu
 
 Open in Jupyter or a .ipynb reader in your favorite IDE and press "run all". Be sure to select the ipykernel installed in the venv set up for this project.
 
+## Explanation:
+
+Please see notebook's markdown and comments. This section will be expanded.
