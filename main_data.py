@@ -82,14 +82,11 @@ def get_history():
     df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
     df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
     df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
-    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert(
-        "EST"
-    )
+    # df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-    # : convert march 2020 thru june 2020 to MST df.loc["2020-03-01":"2020-07-01"].timestamp.dt.tz_convert("MST")
     return df
 
 
@@ -339,22 +336,22 @@ def main():
     testlength = None
 
     all_streams = get_history()
-    podcasts = get_pods(all_streams)
+    # podcasts = get_pods(all_streams)
     music_streams_no_features = remove_pods(all_streams)
-    music_streams = add_features(music_streams_no_features, length=testlength)
-    playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
-    no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
-        drop=True
-    )
+    # music_streams = add_features(music_streams_no_features, length=testlength)
+    # playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
+    # no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
+    #     drop=True
+    # )
     wheel_df = open_wheel()
 
     df_to_json(music_streams_no_features, name="music_streams_no_features.json")
-    df_to_json(music_streams, name="music_streams.json")
-    df_to_json(no_skip_df, name="no_skip_df_test.json")
-    df_to_json(playlist_example, name="playlist_example.json")
-    df_to_json(podcasts, name="podcasts.json")
-    df_to_json(all_streams, name="all_streams.json")
-    df_to_json(wheel_df, name="wheel_df.json")
+    # df_to_json(music_streams, name="music_streams.json")
+    # df_to_json(no_skip_df, name="no_skip_df_test.json")
+    # df_to_json(playlist_example, name="playlist_example.json")
+    # df_to_json(podcasts, name="podcasts.json")
+    # df_to_json(all_streams, name="all_streams.json")
+    # df_to_json(wheel_df, name="wheel_df.json")
 
 
 if __name__ == "__main__":
