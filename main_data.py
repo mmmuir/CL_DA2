@@ -87,7 +87,7 @@ def get_history():
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-    df = df[df["artist"].str.contains("myNoise") == False]
+    # df = df[df["artist"].str.contains("myNoise") == False]
     return df
 
 
@@ -95,7 +95,7 @@ def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
-        .drop(columns=["track", "artist", "album", "shuffle"])
+        .drop(columns=["track", "artist", "album", "shuffle", "id"])
         .rename(
             columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"}
         )
@@ -331,12 +331,12 @@ def main():
 
     all_streams = get_history()
     podcasts = get_pods(all_streams)
-    music_streams_no_features = remove_pods(all_streams)
-    music_streams = add_features(music_streams_no_features, length=testlength)
-    playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
-    no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
-        drop=True
-    )
+    # music_streams_no_features = remove_pods(all_streams)
+    # music_streams = add_features(music_streams_no_features, length=testlength)
+    # playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
+    # no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
+    #     drop=True
+    # )
     wheel_df = open_wheel()
 
     df_to_json(podcasts, name="podcasts.json")
