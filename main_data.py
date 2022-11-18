@@ -11,7 +11,7 @@ from ratelimit import limits
 
 # Instantiate Spotipy
 CID = "ec23ca502beb44ffb22173b68cd37d9a"
-SECRET = "secret key here"
+SECRET = "secret key herenan"
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
         client_id=CID, client_secret=SECRET
@@ -82,7 +82,9 @@ def get_history():
     df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
     df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
     df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
-    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
+    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert(
+        "EST"
+    )  # Todo: fix timezone localization issue, now broken
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
@@ -146,7 +148,7 @@ def get_playlist(uri):
 
 
 def open_wheel():
-    with open(path.join("data", "camelot.json"), encoding='utf-8') as json_file:
+    with open(path.join("data", "camelot.json"), encoding="utf-8") as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
         return camelot_wheel
@@ -250,8 +252,8 @@ def add_features(df, length=None, playlist=None):
                         "shuffle",
                         "id",
                         "timestamp",
-                        'playtime_s',
-                        'playtime_h'
+                        "playtime_s",
+                        "playtime_h",
                     ]
                 ]
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
