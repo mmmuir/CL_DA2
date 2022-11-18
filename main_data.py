@@ -323,13 +323,13 @@ def get_friendly(
 
 
 def df_to_json(df, name):
-    return df.to_json(path.join("junk", name))
+    return df.to_json(path.join("data", name))
 
 
 def json_to_df(*df):
 
     for name in df:
-        yield pd.read_json(path.join("junk", name))
+        yield pd.read_json(path.join("data", name))
 
 
 def main():
@@ -348,7 +348,7 @@ def main():
     )
     wheel_df = open_wheel()
 
-    df_to_json(music_streams_no_features, name="test_music_streams_no_features.json")
+    df_to_json(music_streams_no_features, name="music_streams_no_features.json")
     df_to_json(music_streams, name="music_streams.json")
     df_to_json(no_skip_df, name="no_skip_df_test.json")
     df_to_json(playlist_example, name="playlist_example.json")
