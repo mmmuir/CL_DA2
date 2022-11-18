@@ -310,13 +310,13 @@ def get_friendly(
 
 
 def df_to_json(df, name):
-    return df.to_json(path.join("junk", name))
+    return df.to_json(path.join("data", name))
 
 
 def json_to_df(*df):
 
     for name in df:
-        yield pd.read_json(path.join("junk", name))
+        yield pd.read_json(path.join("data", name))
 
 
 def main():

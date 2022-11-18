@@ -67,3 +67,4 @@ This file serves as the primary data wrangler, as well as a module containing fu
 
 `add_features()` takes the DataFrame of locally stored streaming history as an input, querying the API to add information such as tempo, key signature, and track duration.
 
+`df_to_json() and json_to_df()` 
