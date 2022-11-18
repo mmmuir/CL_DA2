@@ -115,11 +115,13 @@ def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
-        .drop(columns=["track", "artist", "album", "shuffle"])
+        .drop(columns=["track", "artist", "album", "shuffle", "id"])
         .rename(columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"})
     )
 
 
+
+# %%
 
 # %%
 def remove_pods(df):
@@ -141,6 +143,7 @@ def remove_pods(df):
 
 # %%
 def get_playlist(uri):
+
     playlist_df = []
     offset = 0
     while True:
@@ -217,6 +220,18 @@ def key_to_camelot(df):
 # %%
 @limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
+    """_summary_
+
+    Arguments:
+        df -- _description_
+
+    Keyword Arguments:
+        length -- _description_ (default: {None})
+        playlist -- _description_ (default: {None})
+
+    Returns:
+        _description_
+    """
     # Specify length in main() for testing purposes
     df = df[:length]
     # Drop duplicates to limit API calls to include only unique URIs
@@ -280,14 +295,13 @@ def add_features(df, length=None, playlist=None):
                         "timestamp",
                     ]
                 ]
-                # merge_cols["date"] = merge_cols["date"].astype(str)
             # Round tempos to nearest whole number for easier. Playlist generation works with tempo ranges, so decimal precision is unnecessary.
             merge_cols["duration"] = round(merge_cols["duration"].copy() / 1000).astype(
                 int
             )
             merge_cols["tempo"] = round(merge_cols["tempo"]).astype(
                 int
-            )  # Todo: delete this if it breaks main
+            )
             return merge_cols
         res = sp.audio_features(
             df_query["id"].iloc[offset_min:offset_max],
@@ -360,6 +374,7 @@ def df_to_json(df, name):
 
 # %%
 def json_to_df(*df):
+
     for name in df:
         yield pd.read_json(path.join("data", name))
 
@@ -367,6 +382,7 @@ def json_to_df(*df):
 
 # %%
 def main():
+
     # Example playlist
     URI = "spotify:playlist:5CF6KvWn85N6DoWufOjP5T"
     # Todo: delete for production
@@ -410,12 +426,12 @@ def main():
 # %%
 # # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
 # %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
-# # %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
+# %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
 
 
 
 # %%
-podcasts
+music_streams
 
 # %%
 
