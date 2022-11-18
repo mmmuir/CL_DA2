@@ -11,7 +11,7 @@ from ratelimit import limits
 
 # Instantiate Spotipy
 CID = "ec23ca502beb44ffb22173b68cd37d9a"
-SECRET = "secret key here"
+SECRET = "556c805ce20848ed94194c081f0c96a8"
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
         client_id=CID, client_secret=SECRET
@@ -20,13 +20,6 @@ sp = spotipy.Spotify(
 
 
 def get_history():
-    """_summary_
-        Convert extended streaming history to DataFrame.
-
-    Returns:
-        _description_
-
-    """
     json_concat = []
     history = glob(path.join("data", "endsong*.json"))
     for i in range(len(history)):
@@ -94,6 +87,7 @@ def get_history():
 
 
 def get_pods(df):
+    # Extract podcasts from all_streams.
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
@@ -316,13 +310,13 @@ def get_friendly(
 
 
 def df_to_json(df, name):
-    return df.to_json(path.join("data", name))
+    return df.to_json(path.join("junk", name))
 
 
 def json_to_df(*df):
 
     for name in df:
-        yield pd.read_json(path.join("data", name))
+        yield pd.read_json(path.join("junk", name))
 
 
 def main():
