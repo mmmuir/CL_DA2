@@ -82,7 +82,7 @@ def get_history():
     df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
     df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
     df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
-    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
+    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert("EST") #Todo: fix timezone localization issue, now broken
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
@@ -95,7 +95,7 @@ def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
-        .drop(columns=["track", "artist", "album", "shuffle", "id"])
+        .drop(columns=["track", "artist", "album", "shuffle"])
         .rename(
             columns={"show": "artist", "episode": "track", "spotify_episode_uri": "id"}
         )
@@ -339,13 +339,13 @@ def main():
     )
     wheel_df = open_wheel()
 
-    df_to_json(music_streams_no_features, name="music_streams_no_features.json")
-    df_to_json(music_streams, name="music_streams.json")
-    df_to_json(no_skip_df, name="no_skip_df_test.json")
-    df_to_json(playlist_example, name="playlist_example.json")
     df_to_json(podcasts, name="podcasts.json")
     df_to_json(all_streams, name="all_streams.json")
-    df_to_json(wheel_df, name="wheel_df.json")
+    # df_to_json(music_streams_no_features, name="music_streams_no_features.json")
+    # df_to_json(music_streams, name="music_streams.json")
+    # df_to_json(no_skip_df, name="no_skip_df_test.json")
+    # df_to_json(playlist_example, name="playlist_example.json")
+    # df_to_json(wheel_df, name="wheel_df.json")
 
 
 if __name__ == "__main__":
