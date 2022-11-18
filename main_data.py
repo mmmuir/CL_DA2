@@ -146,7 +146,7 @@ def get_playlist(uri):
 
 
 def open_wheel():
-    with open(path.join("data", "camelot.json")) as json_file:
+    with open(path.join("data", "camelot.json"), encoding='utf-8') as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
         return camelot_wheel
@@ -272,13 +272,6 @@ def add_features(df, length=None, playlist=None):
         offset_max += 50
 
 
-# # This version works with uri
-# #should also have function to get uri from song title + artist
-# #: proper type hinting and default values
-# # separate functions i suppose, maybe with decorators
-# # https://stackoverflow.com/questions/62153371/best-way-to-create-python-function-with-multiple-options
-
-
 def get_friendly(
     df,
     tempo_range=10,
@@ -337,22 +330,22 @@ def main():
     testlength = None
 
     all_streams = get_history()
-    # podcasts = get_pods(all_streams)
+    podcasts = get_pods(all_streams)
     music_streams_no_features = remove_pods(all_streams)
-    # music_streams = add_features(music_streams_no_features, length=testlength)
-    # playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
-    # no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
-    #     drop=True
-    # )
+    music_streams = add_features(music_streams_no_features, length=testlength)
+    playlist_example = add_features(get_playlist(URI), length=testlength, playlist=True)
+    no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
+        drop=True
+    )
     wheel_df = open_wheel()
 
     df_to_json(music_streams_no_features, name="music_streams_no_features.json")
-    # df_to_json(music_streams, name="music_streams.json")
-    # df_to_json(no_skip_df, name="no_skip_df_test.json")
-    # df_to_json(playlist_example, name="playlist_example.json")
-    # df_to_json(podcasts, name="podcasts.json")
-    # df_to_json(all_streams, name="all_streams.json")
-    # df_to_json(wheel_df, name="wheel_df.json")
+    df_to_json(music_streams, name="music_streams.json")
+    df_to_json(no_skip_df, name="no_skip_df_test.json")
+    df_to_json(playlist_example, name="playlist_example.json")
+    df_to_json(podcasts, name="podcasts.json")
+    df_to_json(all_streams, name="all_streams.json")
+    df_to_json(wheel_df, name="wheel_df.json")
 
 
 if __name__ == "__main__":
