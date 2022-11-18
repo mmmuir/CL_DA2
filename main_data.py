@@ -99,7 +99,7 @@ def get_history():
         .reset_index(drop=True)
     )
     df["playtime"] = round(df["playtime"].copy() / 1000).astype(int)
-    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"])
+    df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert("EST")
     df["ddate"] = df[["timestamp"]].apply(lambda x: x.dt.date)
     df["dtime"] = df[["timestamp"]].apply(lambda x: x.dt.time)
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
@@ -107,6 +107,7 @@ def get_history():
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
+    # Todo: convert march 2020 thru june 2020 to MST df.loc["2020-03-01":"2020-07-01"].timestamp.dt.tz_convert("MST")
     return df
 
 
@@ -363,10 +364,22 @@ def pickl(df, name, all=False):
 
 
 # %%
+# Todo: make work for one file
 def unpickl(*df):
     for name in df:
         yield pd.read_pickle(path.join("data", name))
 
+
+
+# %%
+def jsn(df, name):
+    return df.to_json(path.join("data", name))
+
+
+# %%
+def dejsn(*df):
+    for name in df:
+        yield pd.read_json(path.join("data", name))
 
 
 # %%
@@ -393,18 +406,25 @@ def main():
     pickl(podcasts_df, name="podcasts_df.p")
     pickl(all_streams_df, name="all_streams_df.p")
     pickl(wheel_df, name="wheel_df.p")
-    # return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
+    jsn(streams_df, name="streams_df.json")
+    jsn(streams_af_df, name="streams_af_df.json")
+    jsn(no_skip_df, name="no_skip_df.json")
+    jsn(playlist_af_df, name="playlist_af_df.json")
+    jsn(pod_df, name="pod_df.json")
+    jsn(all_streams_df, name="all_streams_df.json")
+    jsn(wheel_df, name="wheel_df.json")
+    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
 
 
 # %%
 # if __name__ == "__main__":
 #     main()
 
-# # %prun -r main()
+# %prun -r main()
 
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df = main()
+# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, pod_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 # # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
 # # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
