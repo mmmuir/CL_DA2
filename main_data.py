@@ -220,18 +220,6 @@ def key_to_camelot(df):
 # %%
 @limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
-    """_summary_
-
-    Arguments:
-        df -- _description_
-
-    Keyword Arguments:
-        length -- _description_ (default: {None})
-        playlist -- _description_ (default: {None})
-
-    Returns:
-        _description_
-    """
     # Specify length in main() for testing purposes
     df = df[:length]
     # Drop duplicates to limit API calls to include only unique URIs
@@ -425,8 +413,8 @@ def main():
 
 # %%
 # # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
-# %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
+# # %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
+# # %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
 
 
 
