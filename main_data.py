@@ -29,11 +29,11 @@ from ratelimit import limits
 
 # %%
 # Instantiate Spotipy
-cid = "ec23ca502beb44ffb22173b68cd37d9a"
-secret = "556c805ce20848ed94194c081f0c96a8"
+CID = "ec23ca502beb44ffb22173b68cd37d9a"
+SECRET = "556c805ce20848ed94194c081f0c96a8"
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
-        client_id=cid, client_secret=secret
+        client_id=CID, client_secret=SECRET
     )
 )
 
@@ -64,7 +64,8 @@ def get_history():
                 json_concat.append(user_json)
         elif not history:
             print(
-                "No streaming history in the current working directory. Visit https://www.spotify.com/account/privacy/ to request your extended streaming history and move the endsong.json files to the notebook directory to run analyses on your extended history."
+                "No streaming history in the current working directory. Visit https://www.spotify.com/account/privacy/ to request\
+                 your extended streaming history and move the endsong.json files to data/ in the notebook folder to run analyses on your extended history."
             )
             break
     df = (
@@ -92,13 +93,13 @@ def get_history():
                 "episode_name": "episode",
                 "episode_show_name": "show",
                 "spotify_track_uri": "id",
-                "ms_played": "playtime",
+                "ms_played": "playtime_s",
                 "ts": "timestamp",
             }
         )
         .reset_index(drop=True)
     )
-    df["playtime"] = round(df["playtime"].copy() / 1000).astype(int)
+    df["playtime_s"] = round(df["playtime_s"].copy() / 1000).astype(int)
     df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert("EST")
     df["ddate"] = df[["timestamp"]].apply(lambda x: x.dt.date)
     df["dtime"] = df[["timestamp"]].apply(lambda x: x.dt.time)
@@ -113,7 +114,7 @@ def get_history():
 
 
 # %%
-def get_podcasts(df):
+def get_pods(df):
     return (
         df[df["id"].isnull()]
         .reset_index(drop=True)
@@ -123,7 +124,7 @@ def get_podcasts(df):
 
 
 # %%
-def remove_podcasts(df):
+def remove_pods(df):
     # Drop podcast episodes. Reorder columns.
     df = (
         df.fillna(value=nan)  # Todo: keep nan or no
@@ -239,7 +240,7 @@ def add_features(df, length=None, playlist=None):
                         "reason_start": "start",
                         "reason_end": "end",
                         "duration_ms": "duration",
-                        "ms_played": "playtime",
+                        "ms_played": "playtime_s",
                         "ts": "timestamp",
                     }
                 )
@@ -247,7 +248,7 @@ def add_features(df, length=None, playlist=None):
 
             key_to_camelot(merge_cols)
             merge_cols = pd.merge(merge_cols, df)
-            # Todo: separate function so we can remove these col names from streams_df too in get_history()
+            # Todo: separate function so we can remove these col names from music_streams_no_features too in get_history()
             if playlist:
                 merge_cols = merge_cols[
                     [
@@ -268,7 +269,7 @@ def add_features(df, length=None, playlist=None):
                         "track",
                         "album",
                         "duration",
-                        "playtime",
+                        "playtime_s",
                         "date",
                         "time",
                         "dtime",
@@ -320,7 +321,6 @@ def get_friendly(
     uri=None,
     index=None,
     shuffle=None,
-    playlist=False,
     shift=["all"],
 ):
     wheel = open_wheel()
@@ -389,47 +389,44 @@ def main():
     # Todo: delete for production
     testlength = None
 
-    all_streams_df = get_history()
-    podcasts_df = get_podcasts(all_streams_df)
-    streams_df = remove_podcasts(all_streams_df)
-    streams_af_df = add_features(streams_df, length=testlength)
-    playlist_af_df = add_features(get_playlist(uri), length=testlength, playlist=True)
-    no_skip_df = streams_af_df.query("(playtime / duration) > 0.75").reset_index(
+    all_streams = get_history()
+    podcasts = get_pods(all_streams)
+    music_streams_no_features = remove_pods(all_streams)
+    music_streams = add_features(music_streams_no_features, length=testlength)
+    playlist_example = add_features(get_playlist(uri), length=testlength, playlist=True)
+    no_skip_df = music_streams.query("(playtime_s / duration) > 0.75").reset_index(
         drop=True
     )
     wheel_df = open_wheel()
 
-    pickl(streams_df, name="streams_df.p")
-    pickl(streams_af_df, name="streams_af_df.p")
+    pickl(all_streams, name="all_streams.p")
+    pickl(music_streams_no_features, name="music_streams_no_features.p")
+    pickl(music_streams, name="music_streams.p")
     pickl(no_skip_df, name="no_skip_df.p")
-    pickl(playlist_af_df, name="playlist_af_df.p")
-    pickl(podcasts_df, name="podcasts_df.p")
-    pickl(all_streams_df, name="all_streams_df.p")
+    pickl(playlist_example, name="playlist_example.p")
+    pickl(podcasts, name="podcasts.p")
+    pickl(all_streams, name="all_streams.p")
     pickl(wheel_df, name="wheel_df.p")
-    jsn(streams_df, name="streams_df.json")
-    jsn(streams_af_df, name="streams_af_df.json")
+    jsn(music_streams_no_features, name="music_streams_no_features.json")
+    jsn(music_streams, name="music_streams.json")
     jsn(no_skip_df, name="no_skip_df.json")
-    jsn(playlist_af_df, name="playlist_af_df.json")
-    jsn(pod_df, name="pod_df.json")
-    jsn(all_streams_df, name="all_streams_df.json")
+    jsn(playlist_example, name="playlist_example.json")
+    jsn(podcasts, name="podcasts.json")
+    jsn(all_streams, name="all_streams.json")
     jsn(wheel_df, name="wheel_df.json")
-    return streams_df, streams_af_df, no_skip_df, playlist_af_df, podcasts_df, all_streams_df, wheel_df
+    return music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df
 
 
 # %%
 # if __name__ == "__main__":
 #     main()
 
-# %prun -r main()
-
 # %%
 # Run this to get runtime statistics and store variables separately from pickle files. %stored variables can be found in
-# %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, pod_df, all_streams_df, wheel_df = main()
-# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
-# # %prun -r streams_df, streams_af_df, no_skip_df, playlist_af_df, all_streams_df, wheel_df = main()
-# # %store streams_df streams_af_df no_skip_df playlist_af_df all_streams_df wheel_df
+# %prun music_streams_no_features, music_streams, no_skip_df, playlist_example, podcasts, all_streams, wheel_df = main()
+# %store music_streams_no_features music_streams no_skip_df playlist_example podcasts all_streams wheel_df
+
 
 
 # %%
-# # %store streams_df streams_af_df no_skip_df playlist_af_df podcasts_df all_streams_df wheel_df
 
