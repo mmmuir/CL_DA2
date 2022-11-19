@@ -5,7 +5,7 @@ If you are unable to install 3.10.0, 3.9.10+ should work, but compatibility is n
 
 2: From your Bash terminal (Linux/macOS) or [Git Bash](https://appuals.com/what-is-git-bash/) (Windows), clone the repository:
 
-`git clone https://github.com/mmmuir/cl_da2_clone`
+`git clone https://github.com/mmmuir/cl_da2.git`
 
 3: After cloning the repo, move into its directory, and initialize a virtual environment using Python's built-in `venv`, e.g.:
 
