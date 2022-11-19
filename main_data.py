@@ -82,7 +82,7 @@ def get_history():
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-    # df = df[df["artist"].str.contains("myNoise") == False]
+    df = df[[df["artist"].str.contains("myNoise")] == False]
     return df
 
 
