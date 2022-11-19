@@ -11,7 +11,7 @@ from ratelimit import limits
 
 # Instantiate Spotipy
 CID = "ec23ca502beb44ffb22173b68cd37d9a"
-SECRET = "secret_key_here"
+SECRET = "556c805ce20848ed94194c081f0c96a8"
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
         client_id=CID, client_secret=SECRET
@@ -75,14 +75,14 @@ def get_history():
     df["playtime_s"] = round(df.copy()["playtime_s"] / 1000).astype(int)
     df["playtime_m"] = round(df.copy()["playtime_s"] / 60, 2)
     df["playtime_h"] = round(df.copy()["playtime_m"] / 60, 2)
+    # Todo: fix timezone localization issue, now broken. Possible compatibility issue after upgrading?
     df["timestamp"] = pd.to_datetime(df.copy()["timestamp"], utc=True).dt.tz_convert(
         "EST"
-    )  # Todo: fix timezone localization issue, now broken
+    )
     df["date"] = df.timestamp.dt.strftime("%m/%d/%Y")
     df["month"] = df.timestamp.dt.strftime("%b")
     df["year"] = df.timestamp.dt.strftime("%Y")
     df["day"] = df.timestamp.dt.strftime("%a")
-    df = df[[df["artist"].str.contains("myNoise")] == False]
     return df
 
 
@@ -101,16 +101,20 @@ def get_pods(df):
 def remove_pods(df):
     # Drop podcast episodes. Reorder columns.
     df = (
-        df.fillna(value=nan)
-        .loc[df["episode"].isna()]
-        .drop(
-            columns=[
-                "spotify_episode_uri",
-                "episode",
-                "show",
-            ]
+        (
+            df.fillna(value=nan)
+            .loc[df["episode"].isna()]
+            .drop(
+                columns=[
+                    "spotify_episode_uri",
+                    "episode",
+                    "show", 
+                ]
+            )
         )
-    ).reset_index(drop=True)
+        .reset_index(drop=True)
+        .loc[df["artist"].str.contains("myNoise") == False]
+    )
     return df
 
 
