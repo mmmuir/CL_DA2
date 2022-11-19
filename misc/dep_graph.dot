@@ -1,7 +1,7 @@
 digraph {
 	seed = 1;
 	rankdir = "LR";
-	graph [ dpi = 75 ];
+	graph [ dpi = 65 ];
 	wrapt [label="wrapt\n1.14.1"]
 	wcwidth [label="wcwidth\n0.2.5"]
 	urllib3 [label="urllib3\n1.26.12"]
