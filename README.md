@@ -47,7 +47,8 @@ If you are unable to install 3.10.0, 3.9.10+ should work, but compatibility is n
 
 # main_data.py
 
-This file serves as the primary data wrangler, as well as a module containing functions used by `analysis.ipynb`. First, it instantiates an instance of `spotipy.Spotify`, allowing the program to make API calls. **A demo secret key was provided with the project submission form; if it was not forwarded to you, please contact... whoever is in charge of that, and/or check the `git log` of this repository to find my e-mail address.** 
+This file serves as the primary data wrangler, as well as a module containing functions used by `analysis.ipynb`. First, it instantiates class `spotipy.
+Spotify`, allowing the program to make API calls. **A demo secret key was provided with the project submission form; if it was not forwarded to you, please contact... whoever is in charge of that, and/or check the `git log` of this repository to find my e-mail address.** 
 
 ### To run:
 
@@ -78,6 +79,6 @@ This file serves as the primary data wrangler, as well as a module containing fu
 
 Open in Jupyter or a .ipynb reader in your favorite IDE and press "run all". Be sure to select the ipykernel installed in the venv set up for this project.
 
-### Explanation:
+## Explanation:
 
 Please see notebook's markdown and comments. This section will be expanded.
