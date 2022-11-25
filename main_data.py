@@ -20,7 +20,7 @@ sp = spotipy.Spotify(
 
 
 def get_history():
-     """
+    """
     # Todo: add "timezone" parameter for use by non-EST folks
     Concatenates endsong*.json files included in Spotify extended streaming history requests. Drops columns redacted by included remove_identifier.py script, and those unused by analysis functions. Truncates long column names. Converts timestamps to timezone-aware DateTime64 format. Adds additional datetime related columns for less verbose processing in Pandas.
     """
@@ -113,7 +113,7 @@ def remove_pods(df):
     """
     args:
         df: A DataFrame created by get_history(). Removes podcast episodes by selecting rows with null 'episode' columns. Drops rows containing 'myNoise' in df.artist -- these are headphone test tracks.
-    """  
+    """
     # Drop podcast episodes. Reorder columns.
     df = (
         (
@@ -167,8 +167,7 @@ def get_playlist(uri):
 
 
 def open_wheel():
-    """returns: A DataFrame containing key signature transformations from the Camelot wheel.
-    """
+    """returns: A DataFrame containing key signature transformations from the Camelot wheel."""
     with open(path.join("data", "camelot.json"), encoding="utf-8") as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
