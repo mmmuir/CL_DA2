@@ -108,7 +108,7 @@ def remove_pods(df):
                 columns=[
                     "spotify_episode_uri",
                     "episode",
-                    "show", 
+                    "show",
                 ]
             )
         )
