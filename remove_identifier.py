@@ -1,6 +1,6 @@
-from os import path
 import json
 from glob import glob
+from os import path
 
 
 def remove_identifiers():
