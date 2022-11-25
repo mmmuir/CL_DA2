@@ -20,6 +20,10 @@ sp = spotipy.Spotify(
 
 
 def get_history():
+     """
+    # Todo: add "timezone" parameter for use by non-EST folks
+    Concatenates endsong*.json files included in Spotify extended streaming history requests. Drops columns redacted by included remove_identifier.py script, and those unused by analysis functions. Truncates long column names. Converts timestamps to timezone-aware DateTime64 format. Adds additional datetime related columns for less verbose processing in Pandas.
+    """
     json_concat = []
     history = glob(path.join("data", "endsong*.json"))
     for i in range(len(history)):
@@ -87,6 +91,13 @@ def get_history():
 
 
 def get_pods(df):
+    """
+    args:
+        df: A DataFrame created by get_history() before processing with add_features()
+    returns:
+        df: A DataFrame containing only podcasts. Works by dropping rows with non-null "id" column, previously derived from music-only "spotify_track_uri" columns. "spotify_episode_uri" is then renamed to "id" to allow for simultaneous uri-based queries on podcast and music entries.
+    # Todo: just drop based on track_uri, rename both columns and remerge or something. currently not the same in all_streams
+    """
     # Extract podcasts from all_streams.
     return (
         df[df["id"].isnull()]
@@ -99,6 +110,10 @@ def get_pods(df):
 
 
 def remove_pods(df):
+    """
+    args:
+        df: A DataFrame created by get_history(). Removes podcast episodes by selecting rows with null 'episode' columns. Drops rows containing 'myNoise' in df.artist -- these are headphone test tracks.
+    """  
     # Drop podcast episodes. Reorder columns.
     df = (
         (
@@ -119,7 +134,13 @@ def remove_pods(df):
 
 
 def get_playlist(uri):
-
+    """
+    args:
+        uri: The URI for a public Spotify playlist.
+    returns:
+        df: A DataFrame of the chosen playlist.
+        # Todo: add "fields" and "dtypes" to all docstrings
+    """
     playlist_df = []
     offset = 0
     while True:
@@ -146,6 +167,8 @@ def get_playlist(uri):
 
 
 def open_wheel():
+    """returns: A DataFrame containing key signature transformations from the Camelot wheel.
+    """
     with open(path.join("data", "camelot.json"), encoding="utf-8") as json_file:
         camelot_json = json.load(json_file)
         camelot_wheel = pd.DataFrame.from_dict(camelot_json)
@@ -153,6 +176,11 @@ def open_wheel():
 
 
 def key_to_camelot(df):
+    """
+    args:
+        df: A DataFrame containing Spotify audio features. Can be applied to a raw audio_features() response, or a DataFrame that has already been enriched by add_features().
+    Converts Spotify's integer-based key/mode designators into Camelot wheel equivalents
+    """
     df["key"] = (
         df["key"]
         .astype(str)
@@ -189,6 +217,15 @@ def key_to_camelot(df):
 
 @limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
+    """
+    Adds audio features to a DataFrame by querying the API to add information such as tempo, key signature, and track duration.
+    args:
+        df: A DataFrame with no audio features.
+    params:
+        length: How much of the original dataframe to add audio features to. Intended testing purposes to limit API calls.
+    playlist: If True, merges only columns returned by get_playlist().
+    Returns: A DataFrame with audio features.
+    """
     # Specify length in main() for testing purposes
     df = df[:length]
     # Drop duplicates to limit API calls to include only unique URIs
@@ -280,6 +317,17 @@ def get_friendly(
     shuffle=None,
     shift=["all"],
 ):
+    """
+    args:
+        df: A DataFrame with audio features added.
+    params:
+        tempo_range: Default 10. The tempo range of returned tracks, +/- the tempo of the input track.
+        uri: Default None. The ID of the track in the input df user wishes to find compatible songs for.
+        index: Default None. The index of the track in the input df user wishes to find compatible songs for.
+        Shuffle: Default None. If True, tracks with compatible keys will be returned for a random track in the input DataFrame.
+        shift: Type: List. Which shifts to include.
+    Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired 'shifts' in relation to the input track's key signature.
+    """
     wheel = open_wheel()
     df = df.drop_duplicates(subset="id").reset_index()
     if uri:
@@ -314,10 +362,22 @@ def get_friendly(
 
 
 def df_to_json(df, name):
+    """
+    args:
+        df: DataFrame to store as JSON.
+        name: Filename of returned JSON.
+    returns:
+        Writes a JSON version of dataframe to 'data/' folder.
+    """
     return df.to_json(path.join("data", name))
 
 
 def json_to_df(*df):
+    """
+    args:
+        *dfs: Multiple DataFrames.
+    returns: Multiple DataFrames to be assigned to multiple variables. for a single DataFrame, just use pd.read_json(). intended for unpacking many dfs at once
+    """
     for name in df:
         yield pd.read_json(path.join("data", name))
 
