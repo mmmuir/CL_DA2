@@ -26,16 +26,16 @@ def get_history():
     """
     json_concat = []
     history = glob(path.join("data", "endsong*.json"))
-    for i in range(len(history)):
+    for i, endsong_path in enumerate(history):
 
         if len(history) == 1:
 
-            with open(path.join("data", "endsong.json"), encoding="utf-8") as json_file:
+            with open(endsong_path, encoding="utf-8") as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
         elif history:
             with open(
-                path.join("data", f"endsong_{i}.json"), encoding="utf-8"
+                endsong_path, encoding="utf-8"
             ) as json_file:
                 user_json = json.load(json_file)
                 json_concat.append(user_json)
@@ -314,7 +314,7 @@ def get_friendly(
     uri=None,
     index=None,
     shuffle=None,
-    shift=["all"],
+    shifts=["all"],
 ):
     """
     args:
@@ -324,7 +324,7 @@ def get_friendly(
         uri: Default None. The ID of the track in the input df user wishes to find compatible songs for.
         index: Default None. The index of the track in the input df user wishes to find compatible songs for.
         Shuffle: Default None. If True, tracks with compatible keys will be returned for a random track in the input DataFrame.
-        shift: Type: List. Which shifts to include.
+        shifts: Type: List. Which shifts to include.
     Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired 'shifts' in relation to the input track's key signature.
     """
     wheel = open_wheel()
@@ -347,8 +347,8 @@ def get_friendly(
 
     # Select harmonically compatible key signatures in camelot.json
     friendly_keys = []
-    for i in range(len(shift)):
-        key = wheel[song_selected["camelot"]][shift[i]]
+    for i in range(len(shifts)):
+        key = wheel[song_selected["camelot"]][shifts[i]]
         friendly_keys.append(key)
         if type(key) == list:
             friendly_keys.extend(key)
