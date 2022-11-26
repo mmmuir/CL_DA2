@@ -310,7 +310,7 @@ def add_features(df, length=None, playlist=None):
 
 
 def get_friendly(
-        df, tempo_range=10, uri=None, index=None, shuffle=None, shifts=['all']
+    df, tempo_range=10, uri=None, index=None, shuffle=None, shifts=['all']
 ):
     """
     args:
