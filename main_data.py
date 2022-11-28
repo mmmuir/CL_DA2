@@ -319,9 +319,13 @@ def get_friendly(
         tempo_range: Default 10. The tempo range of returned tracks, +/- the tempo of the input track.
         uri: Default None. The ID of the track in the input df user wishes to find compatible songs for.
         index: Default None. The index of the track in the input df user wishes to find compatible songs for.
-        Shuffle: Default None. If True, tracks with compatible keys will be returned for a random track in the input DataFrame.
+        Shuffle: Default None. If True, tracks with compatible keys will be returned for a random track from input df
         shifts: Type: List. Which shifts to include.
-    Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired 'shifts' in relation to the input track's key signature.
+    Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired 'shifts'
+             in relation to the input track's key signature.
+
+    Args:
+        tempo_range (object):
     """
     wheel = open_wheel()
     df = df.drop_duplicates(subset='id').reset_index()
