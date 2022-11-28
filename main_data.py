@@ -384,7 +384,7 @@ def json_to_df(*df):
 def main():
     # Example playlist
     uri = 'spotify:playlist:5CF6KvWn85N6DoWufOjP5T'
-    testlength = 0
+    testlength = None
 
     all_streams = get_history()
     podcasts = get_pods(all_streams)
