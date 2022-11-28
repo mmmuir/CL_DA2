@@ -129,11 +129,10 @@ def remove_pods(df):
             df.fillna(value=nan)
             .loc[df['episode'].isna()]
             .drop(columns=['spotify_episode_uri', 'episode', 'show'])
-        )
-        .reset_index(drop=True)
-        .loc[df['artist'].str.contains('myNoise') == False]
+        ).reset_index(drop=True)
+        # .loc[df['artist'].str.contains('myNoise') == False]
     )
-    return df
+    return df.loc[df['artist'].str.contains('myNoise') == False]
 
 
 def get_playlist(uri):
