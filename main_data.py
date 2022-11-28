@@ -125,15 +125,13 @@ def remove_pods(df):
     """
     # Drop podcast episodes. Reorder columns.
     df = (
-        (
-            df.fillna(value=nan)
-            .loc[df['episode'].isna()]
-            .drop(columns=['spotify_episode_uri', 'episode', 'show'])
-        )
-        .reset_index(drop=True)
+        df.fillna(value=nan)
+        .loc[df['episode'].isna()]
+        .drop(columns=['spotify_episode_uri', 'episode', 'show'])
         .loc[df['artist'].str.contains('myNoise') == False]
+        .reset_index(drop=True)
     )
-    return df.loc[df['artist'].str.contains('myNoise') == False]
+    return df
 
 
 def get_playlist(uri):
