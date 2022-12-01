@@ -15,8 +15,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 # omit assigning CID and SECRET variables and call SpotifyClientCredentials() without params,
 # as shown in relevant docs https://spotipy.readthedocs.io/en/2.6.3/#client-credentials-flow
 
-CID = environ['ec23ca502beb44ffb22173b68cd37d9a']
-SECRET = environ['556c805ce20848ed94194c081f0c96a8']
+CID = 'ec23ca502beb44ffb22173b68cd37d9a'
+SECRET = '556c805ce20848ed94194c081f0c96a8'
 sp = spotipy.Spotify(
     client_credentials_manager=SpotifyClientCredentials(
         client_id=CID, client_secret=SECRET
