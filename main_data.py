@@ -6,7 +6,7 @@ from random import randint
 import pandas as pd
 import spotipy
 from numpy import nan, where
-from ratelimit import limits
+#from ratelimit import limits
 from spotipy.oauth2 import SpotifyClientCredentials
 
 # Instantiate Spotipy.
@@ -215,7 +215,7 @@ def key_to_camelot(df):
     df = df.drop(columns=['key', 'mode'])
 
 
-@limits(calls=150, period=30)
+#@limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
     """
     Adds audio features to a DataFrame by querying the API to add information such as tempo, key signature, and track duration.
@@ -382,7 +382,7 @@ def json_to_df(*df):
 def main():
     # Example playlist
     uri = 'spotify:playlist:5CF6KvWn85N6DoWufOjP5T'
-    testlength = None
+    testlength = 1000
 
     all_streams = get_history()
     podcasts = get_pods(all_streams)
