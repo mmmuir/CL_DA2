@@ -6,7 +6,7 @@ from random import randint
 import pandas as pd
 import spotipy
 from numpy import nan, where
-#from ratelimit import limits
+from ratelimit import limits
 from spotipy.oauth2 import SpotifyClientCredentials
 
 # Instantiate Spotipy.
@@ -15,6 +15,19 @@ from spotipy.oauth2 import SpotifyClientCredentials
 # omit assigning CID and SECRET variables and call SpotifyClientCredentials() without params,
 # as shown in relevant docs https://spotipy.readthedocs.io/en/2.6.3/#client-credentials-flow
 
+## For Windows:
+# In PowerShell:
+# $env:INSPECTIFY_CLIENT = '<key>'
+# $env:INSPECTIFY_SECRET = '<key>'
+# CID = environ['INSPECTIFY_CLIENT']
+# SECRET = environ['INSPECTIFY_SECRET']
+
+## For Linux:
+# In Bash:
+# export INSPECTIFY_CLIENT='<key>'
+# export INSPECTIFY_SECRET='<key>'
+
+## If you don't care about keeping secrets:
 CID = 'ec23ca502beb44ffb22173b68cd37d9a'
 SECRET = '556c805ce20848ed94194c081f0c96a8'
 sp = spotipy.Spotify(
@@ -88,9 +101,9 @@ def get_history():
     df['playtime_m'] = round(df.copy()['playtime_s'] / 60, 2)
     df['playtime_h'] = round(df.copy()['playtime_m'] / 60, 2)
     # Todo: fix timezone localization issue, now broken. Possible compatibility issue after upgrading?
-    df['timestamp'] = pd.to_datetime(df.copy()['timestamp'], utc=True).dt.tz_convert(
-        'EST'
-    )
+    df['timestamp'] = pd.to_datetime(df.copy()['timestamp'], utc=True)#.dt.tz_convert(
+    #    'EST'
+    #)
     df['date'] = df.timestamp.dt.strftime('%m/%d/%Y')
     df['month'] = df.timestamp.dt.strftime('%b')
     df['year'] = df.timestamp.dt.strftime('%Y')
@@ -215,7 +228,7 @@ def key_to_camelot(df):
     df = df.drop(columns=['key', 'mode'])
 
 
-#@limits(calls=150, period=30)
+@limits(calls=150, period=30)
 def add_features(df, length=None, playlist=None):
     """
     Adds audio features to a DataFrame by querying the API to add information such as tempo, key signature, and track duration.
