@@ -399,9 +399,6 @@ def main():
     music_streams_no_features = remove_pods(all_streams)
     music_streams = add_features(music_streams_no_features, length=testlength)
     playlist_example = add_features(get_playlist(uri), length=testlength, playlist=True)
-    no_skip_df = music_streams.query('(playtime_s / duration) > 0.75').reset_index(
-        drop=True
-    )
     wheel_df = open_wheel()
     
 
@@ -409,17 +406,9 @@ def main():
     df_to_json(all_streams, name='all_streams.json')
     df_to_json(music_streams_no_features, name='music_streams_no_features.json')
     df_to_json(music_streams, name='music_streams.json')
-    df_to_json(no_skip_df, name='no_skip_df.json')
     df_to_json(playlist_example, name='playlist_example.json')
     df_to_json(wheel_df, name='wheel_df.json')
     
 
 if __name__ == '__main__':
     main()
-    
-#
-#
-#
-#
-#
-#
