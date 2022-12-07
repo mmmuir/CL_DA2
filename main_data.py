@@ -100,10 +100,7 @@ def get_history():
     df['playtime_s'] = round(df.copy()['playtime_s'] / 1000).astype(int)
     df['playtime_m'] = round(df.copy()['playtime_s'] / 60, 2)
     df['playtime_h'] = round(df.copy()['playtime_m'] / 60, 2)
-    # Todo: fix timezone localization issue, now broken. Possible compatibility issue after upgrading?
-    df['timestamp'] = pd.to_datetime(df.copy()['timestamp'], utc=True)#.dt.tz_convert(
-    #    'EST'
-    #)
+    df['timestamp'] = pd.to_datetime(df.copy()['timestamp'], utc=True)
     df['date'] = df.timestamp.dt.strftime('%m/%d/%Y')
     df['month'] = df.timestamp.dt.strftime('%b')
     df['year'] = df.timestamp.dt.strftime('%Y')
@@ -379,7 +376,7 @@ def df_to_json(df, name):
     returns:
         Writes a JSON version of dataframe to 'data/' folder.
     """
-    return df.to_json(path.join('data', name))
+    return df.to_json(path.join('junk', name), date_format='iso')
 
 
 def json_to_df(*df):
@@ -389,13 +386,13 @@ def json_to_df(*df):
     returns: Multiple DataFrames to be assigned to multiple variables. for a single DataFrame, just use pd.read_json(). intended for unpacking many dfs at once
     """
     for name in df:
-        yield pd.read_json(path.join('data', name))
+        yield pd.read_json(path.join('junk', name))
 
 
 def main():
     # Example playlist
     uri = 'spotify:playlist:5CF6KvWn85N6DoWufOjP5T'
-    testlength = 1000
+    testlength = None
 
     all_streams = get_history()
     podcasts = get_pods(all_streams)
@@ -406,6 +403,7 @@ def main():
         drop=True
     )
     wheel_df = open_wheel()
+    
 
     df_to_json(podcasts, name='podcasts.json')
     df_to_json(all_streams, name='all_streams.json')
@@ -414,7 +412,14 @@ def main():
     df_to_json(no_skip_df, name='no_skip_df.json')
     df_to_json(playlist_example, name='playlist_example.json')
     df_to_json(wheel_df, name='wheel_df.json')
-
+    
 
 if __name__ == '__main__':
     main()
+    
+#
+#
+#
+#
+#
+#
