@@ -6,6 +6,7 @@ from random import randint
 import pandas as pd
 import spotipy
 from numpy import nan, where
+
 # from ratelimit import limits
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -17,17 +18,17 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 ## For Windows:
 # In PowerShell:
-# $env:INSPECTIFY_CLIENT = '<key>'
-# $env:INSPECTIFY_SECRET = '<key>'
-# CID = environ['INSPECTIFY_CLIENT']
-# SECRET = environ['INSPECTIFY_SECRET']
+# $env:INSPECTIFY_CLIENT = "<key>"
+# $env:INSPECTIFY_SECRET = "<key>"
+# CID = environ["INSPECTIFY_CLIENT"]
+# SECRET = environ["INSPECTIFY_SECRET"]
 
 ## For Linux:
 # In Bash:
-# export INSPECTIFY_CLIENT='<key>'
-# export INSPECTIFY_SECRET='<key>'
+# export INSPECTIFY_CLIENT="<key>"
+# export INSPECTIFY_SECRET="<key>"
 
-## If you don't care about keeping secrets:
+## If you don"t care about keeping secrets:
 CID = 'ec23ca502beb44ffb22173b68cd37d9a'
 SECRET = '556c805ce20848ed94194c081f0c96a8'
 sp = spotipy.Spotify(
@@ -39,7 +40,7 @@ sp = spotipy.Spotify(
 
 def get_history():
     """
-    # Todo: add 'timezone' parameter for use by non-EST folks
+    # Todo: add "timezone" parameter for use by non-EST folks
     Concatenates endsong*.json files included in Spotify extended streaming history requests.
     Drops columns redacted by included remove_identifier.py script, and those unused by analysis functions.
     Truncates long column names. Converts timestamps to timezone-aware DateTime64 format.
@@ -113,7 +114,7 @@ def get_pods(df):
     args:
         df: A DataFrame created by get_history() before processing with add_features()
     returns:
-        df: A DataFrame containing only podcasts. Works by dropping rows with non-null 'id' column, previously derived from music-only 'spotify_track_uri' columns. 'spotify_episode_uri' is then renamed to 'id' to allow for simultaneous uri-based queries on podcast and music entries.
+        df: A DataFrame containing only podcasts. Works by dropping rows with non-null "id" column, previously derived from music-only "spotify_track_uri" columns. "spotify_episode_uri" is then renamed to "id" to allow for simultaneous uri-based queries on podcast and music entries.
     # Todo: just drop based on track_uri, rename both columns and remerge or something. currently not the same in all_streams
     """
     # Extract podcasts from all_streams.
@@ -130,8 +131,8 @@ def get_pods(df):
 def remove_pods(df):
     """
     args:
-        df: A DataFrame created by get_history(). Removes podcast episodes by selecting rows with null 'episode' columns.
-        Drops rows containing 'myNoise' in df.artist -- these are headphone test tracks.
+        df: A DataFrame created by get_history(). Removes podcast episodes by selecting rows with null "episode" columns.
+        Drops rows containing "myNoise" in df.artist -- these are headphone test tracks.
     """
     # Drop podcast episodes. Reorder columns.
     df = (
@@ -150,7 +151,7 @@ def get_playlist(uri):
         uri: The URI for a public Spotify playlist.
     returns:
         df: A DataFrame of the chosen playlist.
-        # Todo: add 'fields' and 'dtypes' to all docstrings
+        # Todo: add "fields" and "dtypes" to all docstrings
     """
     playlist_df = []
     offset = 0
@@ -189,7 +190,7 @@ def key_to_camelot(df):
     """
     args:
         df: A DataFrame containing Spotify audio features. Can be applied to a raw audio_features() response, or a DataFrame that has already been enriched by add_features().
-    Converts Spotify's integer-based key/mode designators into Camelot wheel equivalents
+    Converts Spotify"s integer-based key/mode designators into Camelot wheel equivalents
     """
     df['key'] = (
         df['key']
@@ -329,8 +330,8 @@ def get_friendly(
         index: Default None. The index of the track in the input df user wishes to find compatible songs for.
         Shuffle: Default None. If True, tracks with compatible keys will be returned for a random track from input df
         shifts: Type: List. Which shifts to include.
-    Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired 'shifts'
-             in relation to the input track's key signature.
+    Returns: A DataFrame of tracks from the original DataFrame whose key signatures are included in the desired "shifts"
+             in relation to the input track"s key signature.
 
     Args:
         tempo_range (object):
@@ -361,7 +362,7 @@ def get_friendly(
         if type(key) == list:
             friendly_keys.extend(key)
 
-    # Show tracks with harmonically compatible key signatures within a given tempo range. Accounts for Spotify's tendency to double or halve numeric tempos.
+    # Show tracks with harmonically compatible key signatures within a given tempo range. Accounts for Spotify"s tendency to double or halve numeric tempos.
 
     return df.query(
         'camelot in @friendly_keys & (tempo in @acceptable_tempos | tempo * 2 in @acceptable_tempos | tempo / 2 in @acceptable_tempos)'
@@ -374,7 +375,7 @@ def df_to_json(df, name):
         df: DataFrame to store as JSON.
         name: Filename of returned JSON.
     returns:
-        Writes a JSON version of dataframe to 'data/' folder.
+        Writes a JSON version of dataframe to "data/" folder.
     """
     return df.to_json(path.join('junk', name), date_format='iso')
 
@@ -400,15 +401,20 @@ def main():
     music_streams = add_features(music_streams_no_features, length=testlength)
     playlist_example = add_features(get_playlist(uri), length=testlength, playlist=True)
     wheel_df = open_wheel()
-    
 
+    all_streams.to_pickle('all_streams.p')
+    music_streams_no_features.to_pickle('msnft.p)')
+    podcasts.to_pickle('pods.p')
+    music_streams.to_pickle('music_streams.p')
+    playlist_example.to_pickle('playlist.p')
+    wheel_df.to_pickle('wheel.p')
     df_to_json(podcasts, name='podcasts.json')
     df_to_json(all_streams, name='all_streams.json')
     df_to_json(music_streams_no_features, name='music_streams_no_features.json')
     df_to_json(music_streams, name='music_streams.json')
     df_to_json(playlist_example, name='playlist_example.json')
     df_to_json(wheel_df, name='wheel_df.json')
-    
+
 
 if __name__ == '__main__':
     main()
