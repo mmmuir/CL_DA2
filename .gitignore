@@ -5,3 +5,15 @@ venv_sp/
 .ipynb*check*
 .vscode
 .cache
+/.idea/**
+/__pycache__/**
+/isort/**
+/junk/**
+/__pycache__/**
+/isort/**
+/junk/**
+/cl-da2-dsvm/**
+/cl-da2-dsvm/**
+/chatgpt_rmid.py
+/deletethis_maindata.ipynb
+/fix_analysis.json
