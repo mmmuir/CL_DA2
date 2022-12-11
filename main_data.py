@@ -10,6 +10,10 @@ from numpy import nan, where
 # from ratelimit import limits
 from spotipy.oauth2 import SpotifyClientCredentials
 
+import sys
+# Something about this script tends to lead to buggy __pycache__ files
+sys.dont_write_bytecode = True 
+
 # Instantiate Spotipy.
 # To run, assign your client ID and secret key to environment variables
 # If environment variables names are SPOTIPY_CLIENT_ID and SPOTIPY_CLIENT_SECRET, you may
@@ -377,7 +381,7 @@ def df_to_json(df, name):
     returns:
         Writes a JSON version of dataframe to "data/" folder.
     """
-    return df.to_json(path.join('junk', name), date_format='iso')
+    return df.to_json(path.join('data', name), date_format='iso')
 
 
 def json_to_df(*df):
@@ -387,7 +391,7 @@ def json_to_df(*df):
     returns: Multiple DataFrames to be assigned to multiple variables. for a single DataFrame, just use pd.read_json(). intended for unpacking many dfs at once
     """
     for name in df:
-        yield pd.read_json(path.join('junk', name))
+        yield pd.read_json(path.join('data', name))
 
 
 def main():
@@ -402,12 +406,12 @@ def main():
     playlist_example = add_features(get_playlist(uri), length=testlength, playlist=True)
     wheel_df = open_wheel()
 
-    all_streams.to_pickle('all_streams.p')
-    music_streams_no_features.to_pickle('msnft.p)')
-    podcasts.to_pickle('pods.p')
-    music_streams.to_pickle('music_streams.p')
-    playlist_example.to_pickle('playlist.p')
-    wheel_df.to_pickle('wheel.p')
+    all_streams.to_pickle('data/all_streams.p')
+    music_streams_no_features.to_pickle('data/msnft.p')
+    podcasts.to_pickle('data/pods.p')
+    music_streams.to_pickle('data/music_streams.p')
+    playlist_example.to_pickle('data/playlist.p')
+    wheel_df.to_pickle('data/wheel.p')
     df_to_json(podcasts, name='podcasts.json')
     df_to_json(all_streams, name='all_streams.json')
     df_to_json(music_streams_no_features, name='music_streams_no_features.json')
